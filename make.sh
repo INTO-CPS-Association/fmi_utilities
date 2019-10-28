@@ -12,7 +12,7 @@ rm -rf ${TARGETDIR}
 
 function empty_base_url(){
     echo "Setting empty base_url"
-    sed -i '' -e 's#{{ BASE_URL }}##g' ${TARGETINDEXFILE}
+    sed -i '' -e 's#{{ BASE_URL }}#/#g' ${TARGETINDEXFILE}
 }
 
 function copy_frontend(){
@@ -42,7 +42,7 @@ then
         sed -i '' -e 's#{{ BASE_URL }}#http://localhost/fmiutils/#g' ${TARGETINDEXFILE}
     elif [ $1 == "prod" ]
     then
-        copy_elm_to_dir ${TARGETFRONTEND}
+        copy_frontend ${TARGETFRONTEND}
         echo "Setting BASE_URL to /fmiutils"
         sed -i '' -e 's#{{ BASE_URL }}#https://sweng.au.dk/fmiutils/#g' ${TARGETINDEXFILE}
     else
