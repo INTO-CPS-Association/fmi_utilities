@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<fmiModelDescription 	fmiVersion="2.0" 
+						modelName="LFRController" 
+						guid="{adb6056a-0f07-4642-8ed3-b77b0de5f196}" 
+						description="" 
+						author="" 
+						version="Version 1" 
+						copyright="Copyright Overture tool (Aarhus University)" 
+						license="Some Overture FMI License" 
+						generationTool="Overture Tool FMI Exporter - v0.2.9-SNAPSHOT"
+						generationDateAndTime="2017-09-19T12:56:24" 
+						variableNamingConvention="flat" 
+						numberOfEventIndicators="0">
+
+	<CoSimulation 	modelIdentifier="LFRController" 
+					needsExecutionTool="false" 
+					canHandleVariableCommunicationStepSize="true" 
+					canInterpolateInputs="false" 
+					maxOutputDerivativeOrder="0" 
+					canRunAsynchronuously="false" 
+					canBeInstantiatedOnlyOncePerProcess="true"
+					canNotUseMemoryManagementFunctions="true" 
+					canGetAndSetFMUstate="false" 
+					canSerializeFMUstate="false" 
+					providesDirectionalDerivative="false">
+		
+		
+			<SourceFiles>
+				<File name="vdmlib/VdmUnpackString.c" />
+				<File name="vdmlib/VdmSet.c" />
+				<File name="vdmlib/VdmClass.c" />
+				<File name="vdmlib/VdmProduct.c" />
+				<File name="vdmlib/PatternBindMatch.c" />
+				<File name="vdmlib/VdmMap.c" />
+				<File name="vdmlib/PrettyPrint.c" />
+				<File name="vdmlib/VdmBasicTypes.c" />
+				<File name="vdmlib/MATHLib.c" />
+				<File name="vdmlib/IOLib.c" />
+				<File name="vdmlib/VdmGC.c" />
+				<File name="vdmlib/TypedValue.c" />
+				<File name="vdmlib/CSVLib.c" />
+				<File name="vdmlib/VdmSeq.c" />
+				<File name="Controller.c" />
+				<File name="HardwareInterface.c" />
+				<File name="RobotSensor.c" />
+				<File name="RobotServo.c" />
+				<File name="System.c" />
+				<File name="World.c" />
+				<File name="Port.c" />
+				<File name="IntPort.c" />
+				<File name="BoolPort.c" />
+				<File name="RealPort.c" />
+				<File name="StringPort.c" />
+				<File name="Fmu.c" />
+				<File name="FmuIO.c" />
+				<File name="FmuModel.c" />
+
+			</SourceFiles>
+		
+		</CoSimulation>
+
+
+
+	<LogCategories>
+		<Category name="logAll" />
+		<Category name="logError" />
+		<Category name="logFmiCall" />
+<!-- Category name="logShm" /-->
+<!-- Category name="logLaunch" /-->
+		<Category name="Protocol" />
+		<Category name="VdmOut" />
+		<Category name="VdmErr" />
+	</LogCategories>
+
+	<VendorAnnotations>
+		<Tool name="Overture">
+			<Overture>
+				<link valueReference="0" name="HardwareInterface.backwardRotate.value" />
+				<link valueReference="1" name="HardwareInterface.forwardRotate.value" />
+				<link valueReference="2" name="HardwareInterface.forwardSpeed.value" />
+				<link valueReference="3" name="System.hwi.leftVal.value" />
+				<link valueReference="4" name="System.hwi.rightVal.value" />
+				<link valueReference="5" name="System.hwi.servo_left_out.value" />
+				<link valueReference="6" name="System.hwi.servo_right_out.value" />
+				<link valueReference="7" name="System.hwi.total_energy_used.value" />
+
+			</Overture>
+		</Tool>
+	</VendorAnnotations>
+
+
+	<ModelVariables>
+
+		<!-- Index 1 -->
+		<ScalarVariable name="backwardRotate" valueReference="0" causality="parameter" variability="fixed" initial="exact"><Real start="1.0" /></ScalarVariable>
+		<!-- Index 2 -->
+		<ScalarVariable name="forwardRotate" valueReference="1" causality="parameter" variability="fixed" initial="exact"><Real start="5.0" /></ScalarVariable>
+		<!-- Index 3 -->
+		<ScalarVariable name="forwardSpeed" valueReference="2" causality="parameter" variability="fixed" initial="exact"><Real start="4.0" /></ScalarVariable>
+		<!-- Index 4 -->
+		<ScalarVariable name="lfLeftVal" valueReference="3" causality="input" variability="discrete"><Real start="0.0" /></ScalarVariable>
+		<!-- Index 5 -->
+		<ScalarVariable name="lfRightVal" valueReference="4" causality="input" variability="discrete"><Real start="0.0" /></ScalarVariable>
+		<!-- Index 6 -->
+		<ScalarVariable name="servoLeftVal" valueReference="5" causality="output" variability="discrete" initial="approx"><Real start="0.0" /></ScalarVariable>
+		<!-- Index 7 -->
+		<ScalarVariable name="servoRightVal" valueReference="6" causality="output" variability="discrete" initial="approx"><Real start="0.0" /></ScalarVariable>
+		<!-- Index 8 -->
+		<ScalarVariable name="total_energy_used" valueReference="7" causality="input" variability="discrete"><Real start="0.0" /></ScalarVariable>
+
+	
+	</ModelVariables>
+
+	<ModelStructure>
+	<Outputs>
+			<Unknown index="6"  dependencies=""/>			<Unknown index="7"  dependencies=""/>
+	</Outputs>
+
+
+	</ModelStructure>
+
+</fmiModelDescription>
