@@ -38,12 +38,12 @@ then
     elif [ $1 == "localprod" ]
     then
         copy_frontend ${TARGETFRONTEND}/fmiutils
-        echo "Setting BASE_URL to /fmiutils"
+        echo "Setting BASE_URL to /fmiutils/"
         sed -i '' -e 's#{{ BASE_URL }}#http://localhost/fmiutils/#g' ${TARGETINDEXFILE}
     elif [ $1 == "prod" ]
     then
         copy_frontend ${TARGETFRONTEND}
-        echo "Setting BASE_URL to /fmiutils"
+        echo "Setting BASE_URL to /fmiutils/"
         sed -i '' -e 's#{{ BASE_URL }}#https://sweng.au.dk/fmiutils/#g' ${TARGETINDEXFILE}
     else
         echo "Unknown argument: ${1}"
