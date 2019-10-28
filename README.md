@@ -16,6 +16,8 @@ Download Elm (For the Elm frontend) https://guide.elm-lang.org/install.html
 
 # Building
 1. Execute make.sh
+Note: The warning `sed: can't read : No such file or directory` occurring on
+linux can be ignored safely.
 2. Go to target
 3. Execute HsBeFMI-exe
 
