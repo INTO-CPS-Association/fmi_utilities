@@ -30,15 +30,17 @@ someFunc = do
     workingDir <- Dir.getCurrentDirectory
     putStrLn $ "Working directory: " <> workingDir
     fileLogger <- createLogger 
-    Dir.createDirectory "./upload"
+    Dir.createDirectoryIfMissing False "./upload"
     case appConfig of
         Nothing -> putStrLn "Failed to load appconfig.json"
         Just appConfig' ->
-            let checkSizeRequirement' = checkSizeRequirement (sizeLimitGB appConfig') in
+            let checkSizeRequirement' = checkSizeRequirement (sizeLimitGB appConfig')
+                base = "./frontend/" 
+                in
                 scotty (port appConfig') $ do
                     middleware logStdoutDev
-                    middleware $ (mw fileLogger)
-                    middleware $ staticPolicy (addBase "./frontend/")
+                    middleware $ mw fileLogger
+                    middleware $ staticPolicy (addBase base)
                     post "/api/fmichecker" $  checkSizeRequirement' VDMCheck.postModelDescription
                     post "/api/fmuanalyzer" $ checkSizeRequirement' FMUAnalyzer.postFMUAnalyzer
                     get "/api/fmuanalyzer/" FMUAnalyzer.getFMUAnalyzer
@@ -49,7 +51,7 @@ someFunc = do
                             "api":_ -> Nothing
                             -- Case for only host name without subdirectory or filename.
                             -- Case for 404's
-                            _ -> Just [])) $ Web.Scotty.file "./frontend/index.html"
+                            _ -> Just [])) $ Web.Scotty.file $ base ++ "index.html"
 
 checkSizeRequirement :: Integer -> Scotty.ActionT TL.Text IO () -> Scotty.ActionT TL.Text IO ()
 checkSizeRequirement sizeLimit a = do
@@ -75,7 +77,7 @@ mw logger (app::Wai.Application) (req::Request) (fRes::(Response -> IO ResponseR
             fRes response
 
 createLogger :: IO Logger.ApacheLogger
-createLogger = createLoggerActions >>= return . Logger.apacheLogger
+createLogger = Logger.apacheLogger <$> createLoggerActions
 createLoggerActions :: IO Logger.ApacheLoggerActions
 createLoggerActions = let
     -- 5 MB in bytes = 5242880
