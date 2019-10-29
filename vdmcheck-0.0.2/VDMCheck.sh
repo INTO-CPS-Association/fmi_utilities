@@ -71,7 +71,7 @@ case $(file -b --mime-type $FILE) in
 		fi
 	;;
 		
-	text/xml)
+	application/xml|text/xml)
 		cp $FILE $XML
 	;;
 		
@@ -93,7 +93,7 @@ esac
 		exit 2
 	fi
 	
-	if ! java -jar fmi2vdm-0.0.1.jar "$XML" "$VAR" >$VDM
+	if ! java -jar fmi2vdm-0.0.2.jar "$XML" "$VAR" >$VDM
 	then
 		echo "Problem converting modelDescription.xml to VDM-SL?"
 		exit 2
@@ -102,7 +102,7 @@ esac
 	java -Xmx1g -cp vdmj-4.3.0.jar:annotations-1.0.0.jar:annotations2-1.0.0.jar \
 		com.fujitsu.vdmj.VDMJ \
 		-vdmsl -q -annotations -e "isValidFMIModelDescription($VAR)" \
-		model $VDM
+		model $VDM | sed -e "s/true/No errors found./; s/false/Errors found./"
 )
 
 if [ "$SAVE" ]

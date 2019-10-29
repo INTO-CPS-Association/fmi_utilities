@@ -33,4 +33,4 @@ runCheck file'@(filename, _) = do
     return stdOut;
     where 
         execVDMCheck :: String -> IO (ExitCode, String, String)
-        execVDMCheck path = readProcessWithExitCode "./vdmcheck-0.0.1/VDMCheck.sh" [path] ""
+        execVDMCheck path = readProcessWithExitCode "./vdmcheck-0.0.2/VDMCheck.sh" [path] ""
