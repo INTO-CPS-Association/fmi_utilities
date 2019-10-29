@@ -15,8 +15,8 @@ import Control.Monad.IO.Class
 import qualified System.FilePath.Posix as Posix
 import System.Exit (ExitCode)
 
-postModelDescription :: Scotty.ActionT TL.Text IO ()
-postModelDescription = do
+postFile :: Scotty.ActionT TL.Text IO ()
+postFile = do
         fs :: [Web.Scotty.File] <- Web.Scotty.files
         case Val.validateSingleFileParameter fs of
             Left err -> text (TL.pack err)

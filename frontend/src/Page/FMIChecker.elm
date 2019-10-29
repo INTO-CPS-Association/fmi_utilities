@@ -31,12 +31,12 @@ init basePath =
 view : Model -> Html Msg
 view model =
     div []
-        [ label [ for "fileSelector" ] [ text "Model Description" ]
+        [ label [ for "fileSelector" ] [ text "Model Description or FMU" ]
         , input
             [ id "fileSelector"
             , type_ "file"
             , multiple False
-            , accept "text/xml"
+            , accept "text/xml application/xml application/zip"
             , on "change" (D.map FileParameter Utilities.filesDecoder)
             ]
             []
@@ -77,15 +77,15 @@ update msg model =
                     ( { model | checkResult = (Just << Debug.toString) err }, Cmd.none )
 
         Submit ->
-            ( model
-            , case model.file of
+            case model.file of
                 Nothing ->
-                    Cmd.none
+                    ( model, Cmd.none )
 
                 Just f_ ->
-                    Http.post
+                    ( { model | checkResult = Just "Running checker..." }
+                    , Http.post
                         { url = ApiReq.correctURL model.basePath "api/fmichecker"
                         , body = Http.multipartBody [ Http.filePart (File.name f_) f_ ]
                         , expect = Http.expectString SubmitResponse
                         }
-            )
+                    )

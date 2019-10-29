@@ -41,7 +41,7 @@ someFunc = do
                     middleware logStdoutDev
                     middleware $ mw fileLogger
                     middleware $ staticPolicy (addBase base)
-                    post "/api/fmichecker" $  checkSizeRequirement' VDMCheck.postModelDescription
+                    post "/api/fmichecker" $  checkSizeRequirement' VDMCheck.postFile
                     post "/api/fmuanalyzer" $ checkSizeRequirement' FMUAnalyzer.postFMUAnalyzer
                     get "/api/fmuanalyzer/" FMUAnalyzer.getFMUAnalyzer
                     Web.Scotty.delete "/api/general/" General.delete
