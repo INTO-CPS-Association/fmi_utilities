@@ -9,7 +9,8 @@ echo "TARGETINDEXFILE: ${TARGETINDEXFILE}"
 
 
 rm -rf ${TARGETDIR}
-rm frontend/elm-stuff frontend/main.js
+rm -rf frontend/elm-stuff
+rm frontend/main.js
 
 function empty_base_url(){
     echo "Setting empty base_url"
