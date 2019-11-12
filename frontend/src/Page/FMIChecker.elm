@@ -32,7 +32,9 @@ view : Model -> Html Msg
 view model =
     div
         []
-        [ div [ class "form-group" ]
+        [ h1 [ class "display-4, text-center" ] [ text "FMI Checker" ]
+        , div
+            [ class "form-group" ]
             [ label [ for "fileSelector" ] [ text "Model Description or FMU" ]
             , input
                 [ id "fileSelector"

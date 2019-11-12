@@ -192,16 +192,24 @@ view model =
                 [ text "INTO-CPS Association Utilities" ]
             ]
         , div
-            [ class "container" ]
-            [ div
-                []
-                [ renderMenu model ]
-            , div
-                [ class "row jumbotron my-auto" ]
-                [ renderPage model ]
-            , div
-                [ class "text-center" ]
-                [ text "Copyright © INTO-CPS Association" ]
+            [ class "row" ]
+            [ div [ class "col-4" ] []
+            , div [ class "col-4" ]
+                [ div
+                    []
+                    [ renderMenu model ]
+                , div [ class "row" ]
+                    [ div [ class "col-2" ] []
+                    , div
+                        [ class "col-10" ]
+                        [ renderPage model ]
+                    , div [ class "col-2" ] []
+                    ]
+                , div
+                    [ class "text-center" ]
+                    [ text "Copyright © INTO-CPS Association" ]
+                ]
+            , div [ class "col-4" ] []
             ]
         ]
     }
