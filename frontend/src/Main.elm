@@ -187,10 +187,21 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "INTO-CPS Association Utilities"
     , body =
-        [ div []
-            [ h1 [] [ text "INTO-CPS Association Utilities" ]
-            , renderMenu model
-            , renderPage model
+        [ div [ class "container-fluid" ]
+            [ h1 [ class "text-center" ]
+                [ text "INTO-CPS Association Utilities" ]
+            ]
+        , div
+            [ class "container" ]
+            [ div
+                []
+                [ renderMenu model ]
+            , div
+                [ class "row jumbotron my-auto" ]
+                [ renderPage model ]
+            , div
+                [ class "text-center" ]
+                [ text "Copyright © INTO-CPS Association" ]
             ]
         ]
     }
@@ -204,10 +215,12 @@ view model =
 
 renderMenu : Model -> Html Msg
 renderMenu model =
-    ul [ class "nav nav-pills" ]
-        [ li [ class "nav-item" ] [ a [ classList [ ( "nav-link", True ), ( "active", model.route == Routes.HomeRoute ) ], href (Routes.pathFor Routes.HomeRoute) ] [ text "Home" ] ]
-        , li [ class "nav-item" ] [ a [ classList [ ( "nav-link", True ), ( "active", model.route == Routes.FMICheckerRoute ) ], href (Routes.pathFor Routes.FMICheckerRoute) ] [ text "FMIChecker" ] ]
-        , li [ class "nav-item" ] [ a [ classList [ ( "nav-link", True ), ( "active", model.route == Routes.FMUAnalyzerRoute ) ], href (Routes.pathFor Routes.FMUAnalyzerRoute) ] [ text "FMUAnalyzer" ] ]
+    div [ class "navbar, navbar-expand-lg" ]
+        [ ul [ class "navbar-nav nav-fill w-100" ]
+            [ li [ class "nav-item" ] [ a [ classList [ ( "nav-link", True ), ( "active", model.route == Routes.HomeRoute ) ], href (Routes.pathFor Routes.HomeRoute) ] [ text "Home" ] ]
+            , li [ class "nav-item" ] [ a [ classList [ ( "nav-link", True ), ( "active", model.route == Routes.FMICheckerRoute ) ], href (Routes.pathFor Routes.FMICheckerRoute) ] [ text "FMIChecker" ] ]
+            , li [ class "nav-item" ] [ a [ classList [ ( "nav-link", True ), ( "active", model.route == Routes.FMUAnalyzerRoute ) ], href (Routes.pathFor Routes.FMUAnalyzerRoute) ] [ text "FMUAnalyzer" ] ]
+            ]
         ]
 
 
