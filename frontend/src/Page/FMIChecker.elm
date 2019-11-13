@@ -31,29 +31,31 @@ init basePath =
 view : Model -> Html Msg
 view model =
     div
-        []
-        [ h1 [ class "display-4, text-center" ] [ text "FMI Checker" ]
-        , div
-            [ class "form-group" ]
-            [ label [ for "fileSelector" ] [ text "Model Description or FMU" ]
-            , input
-                [ id "fileSelector"
-                , type_ "file"
-                , multiple False
-                , accept "text/xml, application/xml, application/zip"
-                , on "change" (D.map FileParameter Utilities.filesDecoder)
-                , class "form-control-file"
+        [ class "card" ]
+        [ div [ class "card-header" ] [ text "FMI Checker" ]
+        , div [ class "card-body" ]
+            [ div
+                [ class "form-group" ]
+                [ label [ for "fileSelector" ] [ text "Model Description or FMU" ]
+                , input
+                    [ id "fileSelector"
+                    , type_ "file"
+                    , multiple False
+                    , accept "text/xml, application/xml, application/zip"
+                    , on "change" (D.map FileParameter Utilities.filesDecoder)
+                    , class "form-control-file"
+                    ]
+                    []
                 ]
-                []
-            ]
-        , button [ class "btn btn-primary", onClick Submit, disabled (model.file == Nothing) ] [ text "Check ModelDescription" ]
-        , div [ Html.Attributes.style "white-space" "pre-wrap" ]
-            -- style is necessary to preserve line breaks
-            [ Html.h1 [] [ text "Output" ]
-            , text <|
-                Maybe.withDefault
-                    "No output"
-                    model.checkResult
+            , button [ class "btn btn-primary", onClick Submit, disabled (model.file == Nothing) ] [ text "Run Check" ]
+            , div [ Html.Attributes.style "white-space" "pre-wrap" ]
+                -- style is necessary to preserve line breaks
+                [ Html.h1 [] [ text "Output" ]
+                , text <|
+                    Maybe.withDefault
+                        "No output"
+                        model.checkResult
+                ]
             ]
         ]
 

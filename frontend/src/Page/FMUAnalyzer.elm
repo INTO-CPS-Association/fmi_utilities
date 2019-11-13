@@ -41,67 +41,70 @@ init basePath =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ label [ for "fileSelector" ] [ text "FMU" ]
-        , input
-            [ id "fileSelector"
-            , type_ "file"
-            , multiple False
-            , accept ".fmu"
-            , on "change" (D.map FileParameter Utilities.filesDecoder)
-            ]
-            []
-        , div []
-            [ text
-                (case model.file of
-                    Nothing ->
-                        ""
-
-                    Just f ->
-                        File.name f
-                )
-            ]
-        , div []
-            [ label [ for "nParameter" ] [ text "Parameter n (10-100):" ]
+    div [ class "card" ]
+        [ div [ class "card-header" ] [ text "FMU Analyzer" ]
+        , div [ class "card-body" ]
+            [ label [ for "fileSelector" ] [ text "FMU" ]
             , input
-                [ id "nParameter"
-                , type_ "number"
-                , value model.nParameter
-                , onInput NParameter
+                [ id "fileSelector"
+                , type_ "file"
+                , multiple False
+                , accept ".fmu"
+                , on "change" (D.map FileParameter Utilities.filesDecoder)
                 ]
                 []
-            ]
-        , div []
-            [ label [ for "lParameter" ] [ text "Parameter l (10-100):" ]
-            , input
-                [ id "lParameter"
-                , type_ "number"
-                , value model.lParameter
-                , onInput LParameter
+            , div []
+                [ text
+                    (case model.file of
+                        Nothing ->
+                            ""
+
+                        Just f ->
+                            File.name f
+                    )
                 ]
-                []
-            ]
-        , button [ onClick Submit, disabled (model.file == Nothing) ] [ text "Analyze FMU" ]
-        , div [ Html.Attributes.style "white-space" "pre-wrap" ]
-            -- style is necessary to preserve line breaks
-            [ Html.h1 [] [ text "Status" ]
-            , text model.status
-            ]
-        , div [ Html.Attributes.style "white-space" "pre-wrap" ]
-            -- style is necessary to preserve line breaks
-            [ Html.h1 [] [ text "Output" ]
-            , text <|
-                case model.checkResult of
-                    Nothing ->
-                        "No output"
+            , div []
+                [ label [ for "nParameter" ] [ text "Parameter n (10-100):" ]
+                , input
+                    [ id "nParameter"
+                    , type_ "number"
+                    , value model.nParameter
+                    , onInput NParameter
+                    ]
+                    []
+                ]
+            , div []
+                [ label [ for "lParameter" ] [ text "Parameter l (10-100):" ]
+                , input
+                    [ id "lParameter"
+                    , type_ "number"
+                    , value model.lParameter
+                    , onInput LParameter
+                    ]
+                    []
+                ]
+            , button [ onClick Submit, disabled (model.file == Nothing) ] [ text "Analyze FMU" ]
+            , div [ Html.Attributes.style "white-space" "pre-wrap" ]
+                -- style is necessary to preserve line breaks
+                [ Html.h1 [] [ text "Status" ]
+                , text model.status
+                ]
+            , div [ Html.Attributes.style "white-space" "pre-wrap" ]
+                -- style is necessary to preserve line breaks
+                [ Html.h1 [] [ text "Output" ]
+                , text <|
+                    case model.checkResult of
+                        Nothing ->
+                            "No output"
 
-                    Just res ->
-                        case res of
-                            Ok value ->
-                                value.out ++ value.err
+                        Just res ->
+                            case res of
+                                Ok value ->
+                                    value.out ++ value.err
 
-                            Err error ->
-                                error
+                                Err error ->
+                                    error
+                ]
             ]
         ]
 

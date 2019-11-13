@@ -198,13 +198,8 @@ view model =
                 [ div
                     []
                     [ renderMenu model ]
-                , div [ class "row" ]
-                    [ div [ class "col-2" ] []
-                    , div
-                        [ class "col-10" ]
-                        [ renderPage model ]
-                    , div [ class "col-2" ] []
-                    ]
+                , div []
+                    [ renderPage model ]
                 , div
                     [ class "text-center" ]
                     [ text "Copyright © INTO-CPS Association" ]
