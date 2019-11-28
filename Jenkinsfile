@@ -7,11 +7,11 @@ node{
 	}
 
 	stage ('Compile'){
-		sh "build.sh"
+		sh "./build.sh"
 	}
 
 	stage ('Docker build'){
-		sh "docker-build.sh"
+		sh "./docker-build.sh"
 	}
 }
 
