@@ -58,6 +58,9 @@ then
         copy_frontend ${TARGETFRONTEND}
         echo "Setting BASE_URL to /fmiutils/"
         sed -i -e 's#{{ BASE_URL }}#https://sweng.au.dk/fmiutils/#g' ${TARGETINDEXFILE}
+    elif [$1 == 'none']
+    then
+        copy_frontend ${TARGETFRONTEND}
     else
         echo "Unknown argument: ${1}"
         exit 1
