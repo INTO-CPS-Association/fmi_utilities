@@ -44,15 +44,17 @@ view model =
     div [ class "card" ]
         [ div [ class "card-header" ] [ text "FMU Analyzer" ]
         , div [ class "card-body" ]
-            [ label [ for "fileSelector" ] [ text "FMU" ]
-            , input
-                [ id "fileSelector"
-                , type_ "file"
-                , multiple False
-                , accept ".fmu"
-                , on "change" (D.map FileParameter Utilities.filesDecoder)
+            [ label [ for "fileSelector" ]
+                [ text "FMU: "
+                , input
+                    [ id "fileSelector"
+                    , type_ "file"
+                    , multiple False
+                    , accept ".fmu"
+                    , on "change" (D.map FileParameter Utilities.filesDecoder)
+                    ]
+                    []
                 ]
-                []
             , div []
                 [ text
                     (case model.file of
@@ -64,24 +66,28 @@ view model =
                     )
                 ]
             , div []
-                [ label [ for "nParameter" ] [ text "Parameter n (10-100):" ]
-                , input
-                    [ id "nParameter"
-                    , type_ "number"
-                    , value model.nParameter
-                    , onInput NParameter
+                [ label [ for "nParameter" ]
+                    [ text "Parameter n (10-100):"
+                    , input
+                        [ id "nParameter"
+                        , type_ "number"
+                        , value model.nParameter
+                        , onInput NParameter
+                        ]
+                        []
                     ]
-                    []
                 ]
             , div []
-                [ label [ for "lParameter" ] [ text "Parameter l (10-100):" ]
-                , input
-                    [ id "lParameter"
-                    , type_ "number"
-                    , value model.lParameter
-                    , onInput LParameter
+                [ label [ for "lParameter" ]
+                    [ text "Parameter l (10-100):"
+                    , input
+                        [ id "lParameter"
+                        , type_ "number"
+                        , value model.lParameter
+                        , onInput LParameter
+                        ]
+                        []
                     ]
-                    []
                 ]
             , button [ onClick Submit, disabled (model.file == Nothing) ] [ text "Analyze FMU" ]
             , div [ Html.Attributes.style "white-space" "pre-wrap" ]

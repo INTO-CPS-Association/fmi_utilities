@@ -36,18 +36,20 @@ view model =
         , div [ class "card-body" ]
             [ div
                 [ class "form-group" ]
-                [ label [ for "fileSelector" ] [ text "Model Description or FMU" ]
-                , input
-                    [ id "fileSelector"
-                    , type_ "file"
-                    , multiple False
-                    , accept "text/xml, application/xml, application/zip"
-                    , on "change" (D.map FileParameter Utilities.filesDecoder)
-                    , class "form-control-file"
+                [ label [ for "fileSelector" ]
+                    [ text "Model Description or FMU:"
+                    , input
+                        [ id "fileSelector"
+                        , type_ "file"
+                        , multiple False
+                        , accept "text/xml, application/xml, application/zip"
+                        , on "change" (D.map FileParameter Utilities.filesDecoder)
+                        , class "form-control-file"
+                        ]
+                        []
                     ]
-                    []
                 ]
-            , button [ class "btn btn-primary", onClick Submit, disabled (model.file == Nothing) ] [ text "Run Check" ]
+            , button [ onClick Submit, disabled (model.file == Nothing) ] [ text "Run Check" ]
             , div [ Html.Attributes.style "white-space" "pre-wrap" ]
                 -- style is necessary to preserve line breaks
                 [ Html.h1 [] [ text "Output" ]

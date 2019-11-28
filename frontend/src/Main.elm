@@ -185,26 +185,28 @@ update msg model =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = "INTO-CPS Association Utilities"
+    { title = "INTO-CPS Association - FMI Utilities"
     , body =
         [ div [ class "container-fluid" ]
-            [ h1 [ class "text-center" ]
-                [ text "INTO-CPS Association Utilities" ]
-            ]
-        , div
-            [ class "row" ]
-            [ div [ class "col-4" ] []
-            , div [ class "col-4" ]
-                [ div
-                    []
-                    [ renderMenu model ]
-                , div []
-                    [ renderPage model ]
-                , div
-                    [ class "text-center" ]
-                    [ text "Copyright © INTO-CPS Association" ]
+            [ div [ class "text-center" ]
+                [ h1 [] [ text "FMI Utilities" ]
+                , text "INTO-CPS Association"
                 ]
-            , div [ class "col-4" ] []
+            , div
+                [ class "row" ]
+                [ div [ class "col-3" ] []
+                , div [ class "col-6" ]
+                    [ div
+                        []
+                        [ renderMenu model ]
+                    , div []
+                        [ renderPage model ]
+                    , div
+                        [ class "text-center" ]
+                        [ text "Copyright © INTO-CPS Association" ]
+                    ]
+                , div [ class "col-3" ] []
+                ]
             ]
         ]
     }
@@ -218,7 +220,7 @@ view model =
 
 renderMenu : Model -> Html Msg
 renderMenu model =
-    div [ class "navbar, navbar-expand-lg" ]
+    div [ class "navbar navbar-expand-sm navbar-light" ]
         [ ul [ class "navbar-nav nav-fill w-100" ]
             [ li [ class "nav-item" ] [ a [ classList [ ( "nav-link", True ), ( "active", model.route == Routes.HomeRoute ) ], href (Routes.pathFor Routes.HomeRoute) ] [ text "Home" ] ]
             , li [ class "nav-item" ] [ a [ classList [ ( "nav-link", True ), ( "active", model.route == Routes.FMICheckerRoute ) ], href (Routes.pathFor Routes.FMICheckerRoute) ] [ text "FMIChecker" ] ]
