@@ -7,7 +7,7 @@ node{
 	}
 
 	stage ('Compile'){
-		sh "bash build.sh"
+sh label: '', script: './build.sh'
 	}
 
 	stage ('Docker build'){
