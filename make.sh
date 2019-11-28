@@ -12,14 +12,17 @@ rm -rf ${TARGETDIR}
 rm -rf frontend/elm-stuff
 rm frontend/main.js
 
-function empty_base_url(){
-    echo "Setting empty base_url on: ${TARGETINDEXFILE}"
-    sed -i '' -e 's#{{ BASE_URL }}#/#g' ${TARGETINDEXFILE}
-}
-
 function copy_frontend(){
+    echo "Copying frontend to: ${1}"
+
     mkdir --parents $1
     cp --verbose ./frontend/index.html ./frontend/main.js $1
+}
+
+function local_copy() {
+    copy_frontend ${TARGETFRONTEND}
+    echo "Setting empty base_url on: ${TARGETINDEXFILE}"
+    sed -i '' -e 's#{{ BASE_URL }}#/#g' ${TARGETINDEXFILE}
 }
 
 
@@ -30,18 +33,26 @@ echo "==========================================================================
 (cd ./frontend;\
     elm make src/Main.elm --output=main.js)
 
-echo "=== Copying frontend to target and setting {{ BASE_URL }}"
+echo "=== Copying frontend to target and setting {{ BASE_URL }} ==="
 if [ ! -z $1 ]
 then
     if [ $1 == "local" ]
     then
-        copy_frontend ${TARGETFRONTEND}
-        empty_base_url
+        local_copy
     elif [ $1 == "localprod" ]
     then
-        copy_frontend ${TARGETFRONTEND}/fmiutils
-        echo "Attempting to sed on: ${TARGETFRONTEND}/fmiutils/index.html"
-        sed -i -e 's#{{ BASE_URL }}#http://localhost/fmiutils/#g' ${TARGETFRONTEND}/fmiutils/index.html
+        LOCALPRODFRONTEND="${TARGETFRONTEND}/fmiutils"
+        LOCALPRODFRONTENDINDEX="${LOCALPRODFRONTEND}/index.html"
+        copy_frontend ${LOCALPRODFRONTEND}
+        echo "Attempting to sed on: ${LOCALPRODFRONTENDINDEX}"
+        LOCALPRODSEDEXPR="s#{{ BASE_URL }}#http://localhost/fmiutils/#g"
+        if [[ "$OSTYPE" == "darwin"* ]]
+        then
+            # Mac OSX
+            sed -i '' -e "$LOCALPRODSEDEXPR" ${LOCALPRODFRONTENDINDEX}
+        else
+            sed -i -e "$LOCALPRODSEDEXPR" ${LOCALPRODFRONTENDINDEX}
+        fi
     elif [ $1 == "prod" ]
     then
         copy_frontend ${TARGETFRONTEND}
@@ -52,8 +63,7 @@ then
         exit 1
     fi
 else
-    copy_frontend ${TARGETFRONTEND}
-    empty_base_url
+    local_copy
 fi
 echo "================================================================================="
 echo "=== Building backend and copying to target ==="
@@ -66,4 +76,5 @@ echo "==========================================================================
 echo "================================================================================="
 echo "=== Copying VDMCheck and FMUAnalyzer ==="
 echo "================================================================================="
+echo "COPYING TO: ${TARGETDIR}"
 cp -r --verbose ./fmuanalyzer ./vdmcheck-0.0.2 ${TARGETDIR}
