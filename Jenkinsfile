@@ -6,7 +6,7 @@ def getCommitSha(){
 stage('Compile') {
 	sh "rm -rf target/*"
 	checkout scm
-	sh "docker run -it -v "$(pwd)":/application docker.sweng.au.dk/haskell865nodeelm:latest /bin/bash -c 'cd application && ./make.sh 'none''"
+	sh "docker run -it -v \"$(pwd)\":/application docker.sweng.au.dk/haskell865nodeelm:latest /bin/bash -c 'cd application && ./make.sh 'none''"
 
 }
 
