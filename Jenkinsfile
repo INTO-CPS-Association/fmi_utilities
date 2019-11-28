@@ -1,8 +1,4 @@
 
-def getCommitSha(){
-    return sh(returnStdout: true, script: 'git rev-parse --short HEAD')
-}
-
 stage('Compile') {
 	sh "rm -rf target/*"
 	checkout scm
