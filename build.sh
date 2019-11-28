@@ -5,4 +5,4 @@ mkdir target
 docker run  \
     -v "$(pwd)":/application \
     docker.sweng.au.dk/haskell865nodeelm:latest \
-    /bin/bash -c 'cd application && ./make.sh 'none''
+    /bin/bash -c 'cd application && ./make.sh none'
