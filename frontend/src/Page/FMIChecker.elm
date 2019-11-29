@@ -49,7 +49,7 @@ view model =
                         [ id "fileSelector"
                         , type_ "file"
                         , multiple False
-                        , accept "text/xml, application/xml, application/zip"
+                        , accept "text/xml, application/xml, application/zip, .fmu"
                         , on "change" (D.map FileParameter Utilities.filesDecoder)
                         , class "form-control-file"
                         ]

@@ -28,55 +28,39 @@
  */
 
 /**
- * Miscellaneous support types and functions, not related to a specific section of the FMI spec.
+ * 4.2.1 Definition of a CoSimulation section of an FMU.
  */
 types
-	AnyString = seq of char;			-- Note, can be empty string
+	fmi3FMUType ::
+		location								: Location
+		annotations								: [fmi3Annotation]
+		modelIdentifier							: NormalizedString1
+		needsExecutionTool						: [bool]
+		canBeInstantiatedOnlyOncePerProcess		: [bool]
+		canNotUseMemoryManagementFunctions		: [bool]
+		canGetAndSetFMUState					: [bool]
+		canSerializeFMUState					: [bool]
+		providesDirectionalDerivative			: [bool]
+		providesPerElementDependencies			: [bool];
 
-	NormalizedString1 = seq1 of char	-- Not empty
-	inv ns ==
-		forall c in seq ns &
-			c not in set { '\r', '\n', '\t'};
 
-	Location = nat;						-- XML source line number
+	CoSimulation ::
+		base									: fmi3FMUType
+		canHandleVariableCommunicationStepSize	: [bool]
+		canInterpolateInputs					: [bool]
+		maxOutputDerivativeOrder				: [nat]
+		providesIntermediateVariableAccess		: [bool]
+		canReturnEarlyAfterIntermediateUpdate	: [bool]
+		providesHybridCoSimulation				: [bool]
+		providesScheduledExecutionSimulation	: [bool]
+		canNotUseBasicCoSimulation				: [bool];
 
 functions
-	nilSeq[@T]: [seq of @T] +> seq of @T
-	nilSeq(s) ==
-		if s = nil then [] else s;
 
-	nilSet[@T]: [set of @T] +> set of @T
-	nilSet(s) ==
-		if s = nil then {} else s;
-
-	nilBool: [bool] +> bool
-	nilBool(b) ==
-		if b = nil then false else b;
-
-	nilNat: [nat] +> nat
-	nilNat(n) ==
-		if n = nil then 0 else n;
-
-	nilInt: [int] +> int
-	nilInt(n) ==
-		if n = nil then 0 else n;
-
-	nilReal: [real] +> real
-	nilReal(n) ==
-		if n = nil then 0 else n;
-
-	count[@T]: set of set of @T +> nat
-	count(s) ==
-		if s = {}
-		then 0
-		else let e in set s in
-			card e + count[@T](s \ {e})
-	measure card s;
-
-	setToSeq[@T]: set of @T +> seq of @T
-	setToSeq(s) ==
-		if s = {}
-		then []
-		else let e in set s in
-			[e] ^ setToSeq[@T](s \ {e})
-	measure card s;
+	/**
+	 * Check CoSimulation values.
+	 */
+	isValidCoSimulation: [CoSimulation] +> bool
+	isValidCoSimulation(cs) ==
+		cs <> nil =>
+			isValidVendorAnnotation(cs.base.annotations);

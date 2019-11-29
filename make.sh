@@ -78,3 +78,4 @@ echo "=== Copying VDMCheck and FMUAnalyzer ==="
 echo "================================================================================="
 echo "COPYING TO: ${TARGETDIR}"
 cp -r --verbose ./fmuanalyzer ./vdmcheck-0.0.2 ${TARGETDIR}
+cp -r --verbose ./fmuanalyzer ./vdmcheck-0.0.3 ${TARGETDIR}

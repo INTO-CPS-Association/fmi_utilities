@@ -28,55 +28,28 @@
  */
 
 /**
- * Miscellaneous support types and functions, not related to a specific section of the FMI spec.
+ * 2.2.6 Default Experiment
  */
 types
-	AnyString = seq of char;			-- Note, can be empty string
-
-	NormalizedString1 = seq1 of char	-- Not empty
-	inv ns ==
-		forall c in seq ns &
-			c not in set { '\r', '\n', '\t'};
-
-	Location = nat;						-- XML source line number
+	DefaultExperiment ::
+		location		: Location
+		startTime		: [real]
+		stopTime		: [real]
+		tolerance		: [real]
+		stepSize		: [real];
 
 functions
-	nilSeq[@T]: [seq of @T] +> seq of @T
-	nilSeq(s) ==
-		if s = nil then [] else s;
+	isValidDefaultExperiment: [DefaultExperiment] +> bool
+	isValidDefaultExperiment(e) ==
+		e <> nil =>
+			{
+				-- @OnFail("2.2.6 DefalutExperiment tolerance must be >= 0 at line %s", e.location)
+				( e.tolerance <> nil => e.tolerance >= 0),
 
-	nilSet[@T]: [set of @T] +> set of @T
-	nilSet(s) ==
-		if s = nil then {} else s;
+				-- @OnFail("2.2.6 DefaultExperiment stop time must be later than start time at line %s", e.location)
+				( e.startTime <> nil and e.stopTime <> nil => e.stopTime > e.startTime ),
 
-	nilBool: [bool] +> bool
-	nilBool(b) ==
-		if b = nil then false else b;
-
-	nilNat: [nat] +> nat
-	nilNat(n) ==
-		if n = nil then 0 else n;
-
-	nilInt: [int] +> int
-	nilInt(n) ==
-		if n = nil then 0 else n;
-
-	nilReal: [real] +> real
-	nilReal(n) ==
-		if n = nil then 0 else n;
-
-	count[@T]: set of set of @T +> nat
-	count(s) ==
-		if s = {}
-		then 0
-		else let e in set s in
-			card e + count[@T](s \ {e})
-	measure card s;
-
-	setToSeq[@T]: set of @T +> seq of @T
-	setToSeq(s) ==
-		if s = {}
-		then []
-		else let e in set s in
-			[e] ^ setToSeq[@T](s \ {e})
-	measure card s;
+				-- @OnFail("2.2.6 DefaultExperiment stepSize must be less than start-stop interval at line %s", e.location)
+				( e.startTime <> nil and e.stopTime <> nil and e.stepSize <> nil =>
+					e.stopTime - e.startTime > e.stepSize )
+			} = {true};

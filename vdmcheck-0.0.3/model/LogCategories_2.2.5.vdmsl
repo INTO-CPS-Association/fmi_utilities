@@ -28,55 +28,19 @@
  */
 
 /**
- * Miscellaneous support types and functions, not related to a specific section of the FMI spec.
+ * 2.2.5 Log Categories
  */
 types
-	AnyString = seq of char;			-- Note, can be empty string
-
-	NormalizedString1 = seq1 of char	-- Not empty
-	inv ns ==
-		forall c in seq ns &
-			c not in set { '\r', '\n', '\t'};
-
-	Location = nat;						-- XML source line number
+	Category ::
+		location		: Location
+		name			: NormalizedString1
+		description		: [AnyString];
 
 functions
-	nilSeq[@T]: [seq of @T] +> seq of @T
-	nilSeq(s) ==
-		if s = nil then [] else s;
-
-	nilSet[@T]: [set of @T] +> set of @T
-	nilSet(s) ==
-		if s = nil then {} else s;
-
-	nilBool: [bool] +> bool
-	nilBool(b) ==
-		if b = nil then false else b;
-
-	nilNat: [nat] +> nat
-	nilNat(n) ==
-		if n = nil then 0 else n;
-
-	nilInt: [int] +> int
-	nilInt(n) ==
-		if n = nil then 0 else n;
-
-	nilReal: [real] +> real
-	nilReal(n) ==
-		if n = nil then 0 else n;
-
-	count[@T]: set of set of @T +> nat
-	count(s) ==
-		if s = {}
-		then 0
-		else let e in set s in
-			card e + count[@T](s \ {e})
-	measure card s;
-
-	setToSeq[@T]: set of @T +> seq of @T
-	setToSeq(s) ==
-		if s = {}
-		then []
-		else let e in set s in
-			[e] ^ setToSeq[@T](s \ {e})
-	measure card s;
+	isValidLogCategories: [seq1 of Category] +> bool
+	isValidLogCategories(cats) ==
+		cats <> nil =>
+			/* @OnFail("2.2.4 LogCategory names are not unique: %s",
+				{ cats(a).name | a, b in set inds cats &
+					a <> b and cats(a).name = cats(b).name }) */
+			( card { c.name | c in seq cats } = len cats );

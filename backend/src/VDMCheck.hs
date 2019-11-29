@@ -18,19 +18,33 @@ import System.Exit (ExitCode)
 postFile :: Scotty.ActionT TL.Text IO ()
 postFile = do
         fs :: [Web.Scotty.File] <- Web.Scotty.files
+        params' <- params
         case Val.validateSingleFileParameter fs of
             Left err -> text (TL.pack err)
             Right (_,mdFile) ->
-                (liftIO . runCheck . WebUtils.getFilenameAndFile) mdFile >>=
-                    text . TL.pack
+                case validateParams params' of 
+                    Left err -> text (TL.pack err)
+                    Right fmiVersion -> 
+                        (liftIO . runCheck fmiVersion . WebUtils.getFilenameAndFile) mdFile >>= text . TL.pack
 
-runCheck :: (String,BS.ByteString) -> IO String
-runCheck file'@(filename, _) = do
+validateParams :: [Param] -> Either String FmiVersion
+validateParams [] = Left "Missing fmiVersino parameteter"
+validateParams [("fmiVersion","FMI2")] = Right FMI2
+validateParams [("fmiVersion","FMI3")] = Right FMI3
+validateParams ps = Left $ "Invalid params: " ++ show ps
+
+data FmiVersion = FMI2 | FMI3
+
+runCheck :: FmiVersion -> (String,BS.ByteString) -> IO String
+runCheck fmiVersion file'@(filename, _) = do
     dir :: String<- FileUtils.writeFilesToRandomFolderGenUUID [file']
-    (_, stdOut, _) :: (ExitCode, String,String) <- execVDMCheck (dir Posix.</> filename)
+    (_, stdOut, _) :: (ExitCode, String,String) <- execVDMCheck (dir Posix.</> filename) fmiVersion
     putStrLn $  "Stored VDMCheck files in: " <> dir
     liftIO $ Dir.removeDirectoryRecursive dir
     return stdOut;
     where 
-        execVDMCheck :: String -> IO (ExitCode, String, String)
-        execVDMCheck path = readProcessWithExitCode "./vdmcheck-0.0.2/VDMCheck.sh" [path] ""
+        execVDMCheck :: String -> FmiVersion -> IO (ExitCode, String, String)
+        execVDMCheck path fmi = readProcessWithExitCode (getVdmCheckPath fmi) [path] ""
+        getVdmCheckPath :: FmiVersion -> String
+        getVdmCheckPath FMI2 = "./vdmcheck-0.0.2/VDMCheck2.sh"
+        getVdmCheckPath FMI3 = "./vdmcheck-0.0.3/VDMCheck3.sh"
