@@ -11,7 +11,7 @@ sh label: '', script: './build.sh'
 	}
 
 	stage ('Docker build'){
-		sh "bash docker-build.sh"
+		sh "docker build . -t docker.sweng.au.dk/hsbefmi:$GIT_COMMIT"
 	}
 }
 
