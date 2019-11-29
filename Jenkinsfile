@@ -17,7 +17,7 @@ GIT_COMMIT = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%h'")
 docker.withRegistry('https://docker.sweng.au.dk', 'nexus_docker_upp') {
 
 
-def im = docker.build("docker.sweng.au.dk/hsbefmi:${GIT_COMMIT}")
+def im = docker.build("hsbefmi:${GIT_COMMIT}")
 im.push()
 
 
