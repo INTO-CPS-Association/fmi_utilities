@@ -30,20 +30,21 @@ node {
 //
 //        }
 
-		withCredentials([usernamePassword( credentialsId: 'nexusjenkinsdocker', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+        withCredentials([usernamePassword(credentialsId: 'nexusjenkinsdocker', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
 
-			docker.withRegistry('https://docker.sweng.au.dk', 'nexusjenkinsdocker') {
-				sh "docker login -u ${USERNAME} -p ${PASSWORD} https://docker.sweng.au.dk"
+            docker.withRegistry('https://docker.sweng.au.dk', 'nexusjenkinsdocker') {
+                sh "docker login -u ${USERNAME} -p ${PASSWORD} https://docker.sweng.au.dk"
 
-				image.push("latest")
-			}
+                image.push("latest")
+            }
+        }
     }
 
-	stage('Remove local images') {
-		// remove docker images
-		sh("docker rmi -f docker.sweng.au.dk/hsbefmi::latest || :")
-		sh("docker rmi -f docker.sweng.au.dk/hsbefmi:${GIT_COMMIT} || :")
-	}
+    stage('Remove local images') {
+        // remove docker images
+        sh("docker rmi -f docker.sweng.au.dk/hsbefmi::latest || :")
+        sh("docker rmi -f docker.sweng.au.dk/hsbefmi:${GIT_COMMIT} || :")
+    }
     //}
 }
 
