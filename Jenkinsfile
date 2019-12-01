@@ -20,13 +20,13 @@ node {
             sh 'docker login -u $USERNAME -p $PASSWORD https://docker.sweng.au.dk'
 
 
-            docker.withRegistry('https://docker.sweng.au.dk', 'nexusjenkinsdocker') {
+            docker.withRegistry('https://docker.sweng.au.dk', "nexusjenkinsdocker") {
 
 
                 def im = docker.build("hsbefmi:${GIT_COMMIT}")
-                //im.push()
+                im.push()
 
-				sh "docker push docker.sweng.au.dk/hsbefmi:${GIT_COMMIT}"
+				//sh "docker push docker.sweng.au.dk/hsbefmi:${GIT_COMMIT}"
 
             }
         }
