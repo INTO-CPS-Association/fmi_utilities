@@ -14,30 +14,25 @@ node {
         GIT_COMMIT = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%h'").trim()
 //		sh "docker build . -t docker.sweng.au.dk/hsbefmi:$GIT_COMMIT"
 
-//        withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'nexusjenkinsdocker',
-//                          usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-//
-//            sh 'docker login -u $USERNAME -p $PASSWORD https://docker.sweng.au.dk'
+		def image = docker.build("hsbefmi:${GIT_COMMIT}")
+        withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'nexusjenkinsdocker',
+                          usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
 
-        def image = docker.build("hsbefmi:${GIT_COMMIT}")
-//        docker.withRegistry("https://docker.sweng.au.dk", "nexusjenkinsdocker") {
-//
-//
-//			image.push()
-//			image.push('latest')
-//
-//            //sh "docker push docker.sweng.au.dk/hsbefmi:${GIT_COMMIT}"
-//
-//        }
+			sh 'docker login -u $USERNAME -p $PASSWORD https://docker.sweng.au.dk'
 
-        withCredentials([usernamePassword(credentialsId: 'nexusjenkinsdocker', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
 
-            docker.withRegistry('https://docker.sweng.au.dk', 'nexusjenkinsdocker') {
-                sh "docker login -u ${USERNAME} -p ${PASSWORD} https://docker.sweng.au.dk"
+			docker.withRegistry("https://docker.sweng.au.dk", "nexusjenkinsdocker") {
 
-                image.push("latest")
-            }
-        }
+
+				image.push()
+				image.push('latest')
+
+				//sh "docker push docker.sweng.au.dk/hsbefmi:${GIT_COMMIT}"
+
+			}
+		}
+
+
     }
 
     stage('Remove local images') {
