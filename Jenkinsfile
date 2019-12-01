@@ -24,8 +24,9 @@ node {
 
 
                 def im = docker.build("hsbefmi:${GIT_COMMIT}")
-                im.push()
+                //im.push()
 
+				sh "docker push docker.sweng.au.dk/hsbefmi:${GIT_COMMIT}"
 
             }
         }
