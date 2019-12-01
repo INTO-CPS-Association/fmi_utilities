@@ -20,15 +20,23 @@ node {
 //            sh 'docker login -u $USERNAME -p $PASSWORD https://docker.sweng.au.dk'
 
         def image = docker.build("hsbefmi:${GIT_COMMIT}")
-        docker.withRegistry("https://docker.sweng.au.dk", "nexusjenkinsdocker") {
+//        docker.withRegistry("https://docker.sweng.au.dk", "nexusjenkinsdocker") {
+//
+//
+//			image.push()
+//			image.push('latest')
+//
+//            //sh "docker push docker.sweng.au.dk/hsbefmi:${GIT_COMMIT}"
+//
+//        }
 
+		withCredentials([usernamePassword( credentialsId: 'nexusjenkinsdocker', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
 
-			image.push()
-			image.push('latest')
+			docker.withRegistry('https://docker.sweng.au.dk', 'nexusjenkinsdocker') {
+				sh "docker login -u ${USERNAME} -p ${PASSWORD} https://docker.sweng.au.dk"
 
-            //sh "docker push docker.sweng.au.dk/hsbefmi:${GIT_COMMIT}"
-
-        }
+				image.push("latest")
+			}
     }
 
 	stage('Remove local images') {
