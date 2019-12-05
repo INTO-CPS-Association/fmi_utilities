@@ -22,7 +22,7 @@ node {
 //			sh 'docker login -u $USERNAME -p $PASSWORD https://docker.sweng.au.dk'
 
 
-			docker.withRegistry("https://docker.sweng.au.dk", "nexusjenkinsdocker") {
+			docker.withRegistry("docker.sweng.au.dk", "nexusjenkinsdocker") {
 
 
 				image.push()
