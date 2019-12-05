@@ -36,7 +36,7 @@ node {
 
     }
 
-    stage('Remove local images') {
+    post {
         // remove docker images
         sh("docker rmi -f docker.sweng.au.dk/hsbefmi::latest || :")
         sh("docker rmi -f docker.sweng.au.dk/hsbefmi:${GIT_COMMIT} || :")
