@@ -40,7 +40,7 @@ pipeline {
 
         cleanup {
             // remove docker images
-            sh("docker rmi -f docker.sweng.au.dk/hsbefmi::latest || true")
+            sh("docker rmi -f docker.sweng.au.dk/hsbefmi:latest || true")
             sh("docker rmi -f docker.sweng.au.dk/hsbefmi:${GIT_COMMIT} || true")
         }
     }
