@@ -17,18 +17,19 @@ pipeline {
 
         stage('Docker build') {
             steps {
-                GIT_COMMIT = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%h'").trim()
+                script {
+                    GIT_COMMIT = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%h'").trim()
 
-                docker.withRegistry("https://docker.sweng.au.dk", "nexusjenkinsdocker") {
-                    println "Building image"
-                    def image = docker.build("docker.sweng.au.dk/hsbefmi:${GIT_COMMIT}")
+                    docker.withRegistry("https://docker.sweng.au.dk", "nexusjenkinsdocker") {
+                        println "Building image"
+                        def image = docker.build("docker.sweng.au.dk/hsbefmi:${GIT_COMMIT}")
 
-                    println "pushing image"
-                    image.push()
-                    println "pushing as latest"
-                    image.push('latest')
+                        println "pushing image"
+                        image.push()
+                        println "pushing as latest"
+                        image.push('latest')
 
-
+                    }
                 }
             }
         }
