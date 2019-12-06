@@ -42,9 +42,9 @@ pipeline {
                           extensions                       : [[$class           : 'RelativeTargetDirectory',
                                                                relativeTargetDir: 'deploy-host']],
                           submoduleCfg                     : [],
-                          userRemoteConfigs                : [[credentialsId: '37a9ff32-3ec0-4408-b5bd-35eda9d383d9', url: 'https://gitlab.au.dk/software-engineering/deploy-hosts/fmi_utilities.git']]])
+                          userRemoteConfigs                : [[credentialsId: '03f8f292-45bc-4238-8350-aa897d8ef82c', url: 'https://gitlab.au.dk/software-engineering/deploy-hosts/fmi_utilities.git']]])
                 dir("deploy-host") {
-                    sh "git co -b ${GIT_COMMIT}"
+                    sh "git checkout -b ${GIT_COMMIT}"
                     sh "echo should sed"
                     sh "git push --set-upstream origin ${GIT_COMMIT}"
                 }
