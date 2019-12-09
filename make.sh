@@ -7,8 +7,9 @@ echo "TARGETDIR: ${TARGETDIR}"
 echo "TARGETFRONTEND: ${TARGETFRONTEND}"
 echo "TARGETINDEXFILE: ${TARGETINDEXFILE}"
 
-
-rm -rf ${TARGETDIR}
+if [ -d ${TARGETDIR} ]
+  rm -rf ${TARGETDIR}
+fi
 rm -rf frontend/elm-stuff
 rm frontend/main.js
 
@@ -73,7 +74,7 @@ echo "=== Building backend and copying to target ==="
 echo "================================================================================="
 
 (cd ./backend;\
-    stack build --local-bin-path ${TARGETDIR} --copy-bins;\
+    stack build --local-bin-path ${TARGETDIR} --copy-bins --allow-different-user ;\
     cp --verbose ./appconfig.json ${TARGETDIR})
 
 echo "================================================================================="
