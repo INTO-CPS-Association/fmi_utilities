@@ -25,3 +25,5 @@ linux can be ignored safely.
 To send a test file manually to the server, one can use the tool curl.
 Example - execute in root: `curl -F "data=@testdata/modelDescription.xml" http://localhost/api/fmichecker`
 
+# Starting on server:
+`sudo nohup ./HsBeFMI-exe`
