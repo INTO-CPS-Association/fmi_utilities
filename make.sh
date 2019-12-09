@@ -70,7 +70,7 @@ echo "=== Building backend and copying to target ==="
 echo "================================================================================="
 
 (cd ./backend;\
-    stack build --local-bin-path ${TARGETDIR} --copy-bins;\
+    stack build --local-bin-path ${TARGETDIR} --allow-different-user --copy-bins;\
     cp --verbose ./appconfig.json ${TARGETDIR})
 
 echo "================================================================================="
