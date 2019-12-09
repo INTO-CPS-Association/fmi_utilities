@@ -7,9 +7,9 @@ echo "TARGETDIR: ${TARGETDIR}"
 echo "TARGETFRONTEND: ${TARGETFRONTEND}"
 echo "TARGETINDEXFILE: ${TARGETINDEXFILE}"
 
-if [ -d ${TARGETDIR} ]
+#if [ -d ${TARGETDIR} ]
   rm -rf ${TARGETDIR}
-fi
+#fi
 rm -rf frontend/elm-stuff
 rm frontend/main.js
 
