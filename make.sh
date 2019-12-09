@@ -83,5 +83,3 @@ echo "==========================================================================
 echo "COPYING TO: ${TARGETDIR}"
 cp -r --verbose ./fmuanalyzer ./vdmcheck-0.0.2 ${TARGETDIR}
 
-
-chmod -R 777 ${TARGETDIR}
