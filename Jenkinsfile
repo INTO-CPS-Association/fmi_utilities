@@ -17,7 +17,7 @@ pipeline {
                 script {
                     //  sh label: '', script: './build.sh'
                     docker.image('docker.sweng.au.dk/haskell865nodeelm:latest').inside {
-                        sh 'cd application && ./make.sh none'
+                        sh './make.sh none'
                     }
                 }
             }
