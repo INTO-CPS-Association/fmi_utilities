@@ -2,6 +2,10 @@
 
 pipeline {
     agent any
+
+    // Only keep one build
+    properties([[$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', numToKeepStr: '5']]])
+
     stages {
         stage('Checkout') {
             steps {
@@ -37,8 +41,10 @@ pipeline {
 
         stage('Push to production') {
             steps {
-                if (env.BRANCH_NAME == 'master') {
-                    build job: 'fmi_utilities_deploy', parameters: [[$class: 'StringParameterValue', name: 'DOCKER_IMAGE_VERSION', value: GIT_COMMIT]]
+                script {
+                    if (env.BRANCH_NAME == 'master') {
+                        build job: 'fmi_utilities_deploy', parameters: [[$class: 'StringParameterValue', name: 'DOCKER_IMAGE_VERSION', value: GIT_COMMIT]]
+                    }
                 }
             }
         }
