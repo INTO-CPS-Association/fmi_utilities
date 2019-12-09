@@ -4,7 +4,7 @@ pipeline {
     agent any
 
     // Only keep one build
-    properties([[$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', numToKeepStr: '5']]])
+    options([[$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', numToKeepStr: '5']]])
 
     stages {
         stage('Checkout') {
