@@ -34,11 +34,10 @@ pipeline {
             }
         }
 
-        if (env.BRANCH_NAME == 'master') {
-            stage('Production Merge Request') {
-                steps {
-                    paramAValue = "paramAValue"
-                    paramBValue = "paramBValue"
+
+        stage('Push to production') {
+            steps {
+                if (env.BRANCH_NAME == 'master') {
                     build job: 'fmi_utilities_deploy', parameters: [[$class: 'StringParameterValue', name: 'DOCKER_IMAGE_VERSION', value: GIT_COMMIT]]
                 }
             }
