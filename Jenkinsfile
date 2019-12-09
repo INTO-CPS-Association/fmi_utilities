@@ -34,60 +34,12 @@ pipeline {
             }
         }
 
-        stage('Production Merge Request') {
-            steps {
-                checkout([$class                           : 'GitSCM',
-                          branches                         : [[name: '*/master']],
-                          doGenerateSubmoduleConfigurations: false,
-                          extensions                       : [[$class           : 'RelativeTargetDirectory',
-                                                               relativeTargetDir: 'deploy-host']],
-                          submoduleCfg                     : [],
-                          userRemoteConfigs                : [[credentialsId: '03f8f292-45bc-4238-8350-aa897d8ef82c', url: 'https://gitlab.au.dk/software-engineering/deploy-hosts/fmi_utilities.git']]])
-                dir("deploy-host") {
-                    sh "git checkout -b ${GIT_COMMIT}"
-                    sh "echo should sed"
-                    sh "git push --set-upstream origin ${GIT_COMMIT}"
-                }
-
-                withCredentials([string(credentialsId: 'gitlab_au_builder_token', variable: 'PRIVATE_TOKEN')]) {
-                    sh '''
-HOST=https://gitlab.au.dk/api/v4/projects/
-CI_PROJECT_ID=3762
-#software-engineering/deploy-hosts/fmi_utilities
-CI_COMMIT_REF_NAME=$GIT_COMMIT
-
-TARGET_BRANCH=`curl --silent "${HOST}${CI_PROJECT_ID}" --header "PRIVATE-TOKEN:${PRIVATE_TOKEN}" | python3 -c "import sys, json; print(json.load(sys.stdin)['default_branch'])"`;
-
-
-# The description of our new MR, we want to remove the branch after the MR has
-# been closed
-BODY="{
-    \\"id\\": ${CI_PROJECT_ID},
-    \\"source_branch\\": \\"${CI_COMMIT_REF_NAME}\\",
-    \\"target_branch\\": \\"${TARGET_BRANCH}\\",
-    \\"remove_source_branch\\": true,
-    \\"title\\": \\"WIP: ${CI_COMMIT_REF_NAME}\\"
-}";
-
-# Require a list of all the merge request and take a look if there is already
-# one with the same source branch
-LISTMR=`curl --silent "${HOST}${CI_PROJECT_ID}/merge_requests?state=opened" --header "PRIVATE-TOKEN:${PRIVATE_TOKEN}"`;
-COUNTBRANCHES=`echo ${LISTMR} | grep -o "\\"source_branch\\":\\"${CI_COMMIT_REF_NAME}\\"" | wc -l`;
-
-# No MR found, let's create a new one
-if [ ${COUNTBRANCHES} -eq "0" ]; then
-    curl -X POST "${HOST}${CI_PROJECT_ID}/merge_requests" \\
-        --header "PRIVATE-TOKEN:${PRIVATE_TOKEN}" \\
-        --header "Content-Type: application/json" \\
-        --data "${BODY}";
-
-    echo "Opened a new merge request: WIP: ${CI_COMMIT_REF_NAME} and assigned to you";
-    exit;
-fi
-
-echo "No new merge request opened";
-
-                    '''
+        if (env.BRANCH_NAME == 'master') {
+            stage('Production Merge Request') {
+                steps {
+                    paramAValue = "paramAValue"
+                    paramBValue = "paramBValue"
+                    build job: 'fmi_utilities_deploy', parameters: [[$class: 'StringParameterValue', name: 'DOCKER_IMAGE_VERSION', value: GIT_COMMIT]]
                 }
             }
         }
