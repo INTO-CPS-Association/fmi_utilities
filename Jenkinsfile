@@ -16,7 +16,7 @@ pipeline {
             steps {
                 script {
                     //  sh label: '', script: './build.sh'
-                    docker.image('docker.sweng.au.dk/haskell865nodeelm:latest').inside('-u root:root') {
+                    docker.image('docker.sweng.au.dk/haskell865nodeelm:latest').inside('-u jenkins:jenkins') {
                         sh './make.sh none'
                     }
                 }
