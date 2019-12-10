@@ -7,8 +7,9 @@ echo "TARGETDIR: ${TARGETDIR}"
 echo "TARGETFRONTEND: ${TARGETFRONTEND}"
 echo "TARGETINDEXFILE: ${TARGETINDEXFILE}"
 
-
-rm -rf ${TARGETDIR}
+#if [ -d ${TARGETDIR} ]
+  rm -rf ${TARGETDIR}
+#fi
 rm -rf frontend/elm-stuff
 rm frontend/main.js
 
@@ -58,6 +59,9 @@ then
         copy_frontend ${TARGETFRONTEND}
         echo "Setting BASE_URL to /fmiutils/"
         sed -i -e 's#{{ BASE_URL }}#https://sweng.au.dk/fmiutils/#g' ${TARGETINDEXFILE}
+    elif [ $1 == "none" ]
+    then
+        copy_frontend ${TARGETFRONTEND}
     else
         echo "Unknown argument: ${1}"
         exit 1
@@ -70,7 +74,7 @@ echo "=== Building backend and copying to target ==="
 echo "================================================================================="
 
 (cd ./backend;\
-    stack build --local-bin-path ${TARGETDIR} --allow-different-user --copy-bins;\
+    stack build --local-bin-path ${TARGETDIR} --copy-bins --allow-different-user ;\
     cp --verbose ./appconfig.json ${TARGETDIR})
 
 echo "================================================================================="

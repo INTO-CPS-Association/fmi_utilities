@@ -27,3 +27,20 @@ Example - execute in root: `curl -F "data=@testdata/modelDescription.xml" http:/
 
 # Starting on server:
 `sudo nohup ./HsBeFMI-exe`
+
+
+# Jenkins and Docker
+
+The jenkins file will build using docker and generate an image with the git commit version.
+
+Is done locally then a container can be started with
+
+```bash
+docker run -p 8888:80 hsbefmi:<GIT COMMIT>
+```
+
+and if needed a shell can be attached using 
+
+```bash
+docker exec -i -t <container id> /bin/sh
+```
