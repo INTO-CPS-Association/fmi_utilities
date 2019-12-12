@@ -106,7 +106,7 @@ view model =
                         Just res ->
                             case res of
                                 Ok value ->
-                                    value.out ++ value.err
+                                    value.log
 
                                 Err error ->
                                     error
@@ -210,7 +210,8 @@ update msg model =
 
 
 type alias FMUAnalyzerResultJson =
-    { out : String
+    { log : String
+    , out : String
     , err : String
     , faID : String
     }
@@ -218,7 +219,8 @@ type alias FMUAnalyzerResultJson =
 
 fmuanalyzerJsonDecoder : D.Decoder FMUAnalyzerResultJson
 fmuanalyzerJsonDecoder =
-    D.map3 FMUAnalyzerResultJson
+    D.map4 FMUAnalyzerResultJson
+        (D.field "log" D.string)
         (D.field "out" D.string)
         (D.field "err" D.string)
         (D.field "faID" D.string)

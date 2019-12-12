@@ -19,7 +19,6 @@ import qualified Data.ByteString.Lazy as BS
 import qualified System.Directory as Dir
 import Control.Monad.IO.Class as MIO
 import System.Process
-import System.IO
 import qualified System.FilePath.Posix as Posix
 import Network.HTTP.Types.Status
 
@@ -39,9 +38,11 @@ postFMUAnalyzer = do
                     directory :: String <- liftIO $ FileUtils.writeFilesToRandomFolder uuid [file']
                     let fmupath = directory Posix.</> filename
                     liftIO $ putStrLn $ "files directory: " ++ directory
+                    -- The fmu analyzer puts stdOut and stdErr into a file called experiment log.
                     (stdOut,stdErr) :: (String,String) <- liftIO $ runFMUAnalyzer fmupath directory (show nVal) (show lVal)
-                    liftIO $ putStrLn "FMUAnalyzer Finished"
-                    Web.Scotty.json FMUAnalyzerJSON {out = stdOut, err = stdErr, faID = UUID.toString uuid}
+                    log' <- liftIO $ getFMUAnalyzerLog directory
+                    liftIO $ putStrLn $ "FMUAnalyzer Finished"
+                    Web.Scotty.json FMUAnalyzerJSON {FMUAnalyzer.log = log', out = stdOut, err = stdErr, faID = UUID.toString uuid}
         validateParameters :: [Web.Scotty.File] -> [Scotty.Param] -> Either String FMUAnalyzerParametersParsed
         validateParameters reqFiles parameters =
             do
@@ -62,13 +63,19 @@ getFMUAnalyzer = do
 
 runFMUAnalyzer :: String -> String -> String -> String ->  IO (String, String)
 runFMUAnalyzer fmuFilePath resultsDirectory n l = do
-    (_, Just hout, Just herr, _) <- createProcess (proc "./fmuanalyzer/analyze.sh" [fmuFilePath, resultsDirectory, n, l] ) {std_out = CreatePipe, std_err = CreatePipe }
-    hout' <- hGetContents hout
-    herr' <- hGetContents herr
-    return (hout', herr')
+    --(_, Just hout, Just herr, _) <- createProcess (proc "./fmuanalyzer/analyze.sh" [fmuFilePath, resultsDirectory, n, l] ) {std_out = CreatePipe, std_err = CreatePipe }
+    (_, hout, herr) <- readProcessWithExitCode "./fmuanalyzer/analyze.sh" [fmuFilePath, resultsDirectory, n, l] ""
+    --hout' <- hGetContents hout
+    --herr' <- hGetContents herr
+    --return (hout', herr')
+    return (hout, herr)
 
+getFMUAnalyzerLog :: String -> IO String
+getFMUAnalyzerLog resultsDirectory = readFile (resultsDirectory Posix.</> "experiment.log") 
+       
+    
 data FMUAnalyzerParametersParsed = FMUAnalyzerParametersParsed {fappfile :: Web.Scotty.File, fappn :: (String, Int), fappl :: (String, Int)}
-data FMUAnalyzerJSON = FMUAnalyzerJSON {out :: String, err:: String, faID :: String} deriving (Show, Generic)
+data FMUAnalyzerJSON = FMUAnalyzerJSON {log :: String, out :: String, err:: String, faID :: String} deriving (Show, Generic)
 instance ToJSON FMUAnalyzerJSON where
     toEncoding = genericToEncoding defaultOptions
 
