@@ -33,15 +33,15 @@
 types
 	ModelAttributes ::
 		location					: Location
-		fmiVersion					: NormalizedString1
+		fmiVersion					: NormalizedString
 		modelName					: AnyString
-		guid						: NormalizedString1
+		guid						: NormalizedString
 		description					: [AnyString]
 		author						: [AnyString]
-		version						: [NormalizedString1]
+		version						: [NormalizedString]
 		copyright					: [AnyString]
 		license						: [AnyString]
-		generationTool				: [NormalizedString1]
+		generationTool				: [NormalizedString]
 		generationDateAndTime		: [AnyString]
 		variableNamingConvention	: [<flat> | <structured>]
 		numberOfEventIndicators		: [nat];
@@ -231,7 +231,7 @@ functions
 				in
 					if outputIndexes <> {}
 					then
-						/* @OnFail("2.2.8 Ouput variables but no ouputs declared at line %s",
+						/* @OnFail("2.2.8 Output variables but no outputs declared at line %s",
 							md.modelStructure.location) */
 						( md.modelStructure.outputs <> nil )
 
@@ -327,8 +327,12 @@ functions
 					let matchingTypes = { td | td in set nilSet[SimpleType](typedefs) & td.name = dname } in
 					{
 						/* @OnFail("2.2.3 Typedefs have multiple matching names: %s",
-							{ st.name | st in set matchingTypes } ) */
-						( card matchingTypes = 1 ),
+							{ m.name | m in set matchingTypes } ) */
+						( matchingTypes <> {} => card matchingTypes = 1 ),
+
+						/* @OnFail("2.2.3 Declared type %s unknown at line %s",
+							sv.variable.declaredType, sv.location ) */
+						( card matchingTypes <> 0 ),
 
 						-- The match is has compatible values in the ScalarVariable
 						card matchingTypes = 1 => let { simpleType } = matchingTypes in

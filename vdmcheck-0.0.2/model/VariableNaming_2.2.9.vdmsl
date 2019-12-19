@@ -34,10 +34,10 @@ values
 	DIGITS = "0123456789";
 	NONDIGITS = "abcdefghijklmnopqrstuvwxyz_ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	QCHARS = "!#$%&()*+,-./:;<>=?@[]^{}|~ ";
-	ESCAPES = "’\"\\abfnrtv?";	-- ie. you can have \', \", \\, \a etc.
+	ESCAPES = "'\"\\abfnrtv?";	-- ie. you can have \', \", \\, \a etc.
 
 functions
-	isValidStructuredName: NormalizedString1 +> bool
+	isValidStructuredName: NormalizedString +> bool
 	isValidStructuredName(name) ==
 		let mk_(ok, tail) = structuredName(name) in
 			ok and tail = [];
