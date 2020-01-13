@@ -33,32 +33,46 @@
 types
 	Terminal ::
 		location				: Location
-		name					: NormalizedString1
-		matchingRule			: NormalizedString1
-		terminalKind			: [NormalizedString1]
+		name					: NormalizedString
+		matchingRule			: NormalizedString
+		terminalKind			: [NormalizedString]
 		description				: [AnyString]
 		variables				: [seq1 of TerminalMemberVariable]
-		streams					: [seq1 of TerminalStreamMemberVariable];
+		streams					: [seq1 of TerminalStreamMemberVariable]
+		subTerminals			: [seq1 of Terminal];
 
 	TerminalMemberVariable ::
 		location				: Location
-		variableKind			: NormalizedString1
-		memberName				: NormalizedString1
-		variableName			: NormalizedString1;
+		variableKind			: NormalizedString
+		memberName				: NormalizedString
+		variableName			: NormalizedString;
 
 	TerminalStreamMemberVariable ::
 		location				: Location
-		inStreamMemberName		: NormalizedString1
-		outStreamMemberName		: NormalizedString1
-		inStreamVariableName	: NormalizedString1
-		outStreamVariableName	: NormalizedString1;
+		inStreamMemberName		: NormalizedString
+		outStreamMemberName		: NormalizedString
+		inStreamVariableName	: NormalizedString
+		outStreamVariableName	: NormalizedString;
 
 functions
 	isValidTerminals: [seq1 of Terminal] +> bool
 	isValidTerminals(terminals) ==
-		terminals <> nil =>
+		terminals <> nil => dunion
 		{
-			-- @OnFail("Terminal member variables not unique at line %s", t.location)
-			( card { v | v in seq t.variables } = len t.variables ) | t in seq terminals
+			{
+				-- @OnFail("Terminal invalid at line %s", t.location)
+				( isValidTerminal(t) ),
+
+				isValidTerminals(t.subTerminals)
+			}
+
+			| t in seq terminals
 		}
-		= {true};
+		= {true}
+	measure is not yet specified;
+
+	isValidTerminal: Terminal +> bool
+	isValidTerminal(term) ==
+		term.variables <> nil =>
+			-- @OnFail("Terminal member variables not unique at line %s", term.location)
+			( card { v | v in seq term.variables } = len term.variables );
