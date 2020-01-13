@@ -16,8 +16,8 @@ rm frontend/main.js
 function copy_frontend(){
     echo "Copying frontend to: ${1}"
 
-    mkdir --parents $1
-    cp --verbose ./frontend/index.html ./frontend/main.js $1
+    mkdir -p $1
+    cp -v ./frontend/index.html ./frontend/main.js $1
 }
 
 function local_copy() {
@@ -75,11 +75,11 @@ echo "==========================================================================
 
 (cd ./backend;\
     stack build --local-bin-path ${TARGETDIR} --copy-bins --allow-different-user ;\
-    cp --verbose ./appconfig.json ${TARGETDIR})
+    cp -v ./appconfig.json ${TARGETDIR})
 
 echo "================================================================================="
 echo "=== Copying VDMCheck and FMUAnalyzer ==="
 echo "================================================================================="
 echo "COPYING TO: ${TARGETDIR}"
-cp -r --verbose ./fmuanalyzer ./vdmcheck-0.0.2 ${TARGETDIR}
-cp -r --verbose ./fmuanalyzer ./vdmcheck-0.0.3 ${TARGETDIR}
+cp -r -v ./fmuanalyzer ./vdmcheck-0.0.2 ${TARGETDIR}
+cp -r -v ./fmuanalyzer ./vdmcheck-0.0.3 ${TARGETDIR}
