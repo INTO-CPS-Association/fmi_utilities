@@ -23,7 +23,7 @@ textBody =
     """
 This website is the frontend for various FMI-related activities emerging from the INTO-CPS Association.
 
-Information on the activities the are representing on this website is on the page of the activity in question.\\
+Information on the activities the are representing on this website is on the page of the activity in question.
 Currently the activities are the following: 
 - **FMI Checker** checks the static semantics of a model description file of an FMU.
 - **FMU Analyzer** exercises an FMU by loading it an invoking various functions. It takes the model description file of a given FMU into consideration when setting and getting variables.
