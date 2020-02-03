@@ -39,12 +39,36 @@ init basePath =
     ( Model Nothing Nothing (String.fromInt 10) (String.fromInt 10) Nothing "" "" basePath, Cmd.none )
 
 
+textBody : String
+textBody =
+    """The FMI specification is semi-formal and allows for different interpretations, which lead to different implementations of FMUs.
+We recognize that it is  difficult to rigorously specify a standard to the level required by automated synthesis.
+Hence, we propose the FMIMOBSTER, which uses model based testing for the evaluation of FMUs.
+This has the benefit that the model used to describe the possible behaviors of an FMU can also be used to test it, and the tool can be applied with minimal setup and know-how.
+
+If you disagree with a checking result then we are very interested in hearing about it!
+It will allow us to pin down a more accurate interpretation of the standard, and (possibly) correct issues in the tools. Please report issues here: [https://msdl.uantwerpen.be/git/claudio/FMIMOBSTER/issues](https://msdl.uantwerpen.be/git/claudio/FMIMOBSTER/issues)
+The parameters and results used in this website are detailed in the documentation: 
+[https://msdl.uantwerpen.be/git/claudio/FMIMOBSTER/](https://msdl.uantwerpen.be/git/claudio/FMIMOBSTER/)
+
+To try out the tool do the following:
+1. Download the watertank FMU: [https://msdl.uantwerpen.be/git/claudio/FMIMOBSTER/raw/master/src/test/resources/fmus/20-sim/threewatertank1.fmu](https://msdl.uantwerpen.be/git/claudio/FMIMOBSTER/raw/master/src/test/resources/fmus/20-sim/threewatertank1.fmu)
+2. Press Analyze FMU
+
+A publication related to this tool has been accepted for publication in American Modelica Conference 2020 under the title: Application of Model-Based Testing to Dynamic Conformance Evaluation of Functional Mockup Units
+
+**Note: The web-version only executes the Linux 64 binaries within the FMUs.**
+"""
+
+
 view : Model -> Html Msg
 view model =
     div [ class "card" ]
         [ div [ class "card-header" ] [ text "FMU Analyzer" ]
         , div [ class "card-body" ]
-            [ label [ for "fileSelector" ]
+            [ Utilities.markdownToString textBody
+            , Html.hr [ style "color" "black", style "margin-left" "0", style "margin-right" "0" ] []
+            , label [ for "fileSelector" ]
                 [ text "FMU: "
                 , input
                     [ id "fileSelector"
@@ -67,7 +91,7 @@ view model =
                 ]
             , div []
                 [ label [ for "nParameter" ]
-                    [ text "Parameter n (10-100):"
+                    [ text "Parameter n - number of tests (10-100):"
                     , input
                         [ id "nParameter"
                         , type_ "number"
@@ -79,7 +103,7 @@ view model =
                 ]
             , div []
                 [ label [ for "lParameter" ]
-                    [ text "Parameter l (10-100):"
+                    [ text "Parameter l - self-loops (10-100):"
                     , input
                         [ id "lParameter"
                         , type_ "number"
