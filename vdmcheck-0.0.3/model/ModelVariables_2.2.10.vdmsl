@@ -69,6 +69,7 @@ types
 		<approx> |
 		<calculated>;
 
+	-- Note that FMI3 value references are effectively alias tags
 	fmi3ValueReference = nat;
 
 	-- Common variable attributes
@@ -79,6 +80,11 @@ types
 	Dimension ::
 		start				: [nat]
 		valueReference		: [fmi3ValueReference];
+
+	Alias ::
+		name				: NormalizedString
+		description			: [AnyString]
+		displayUnit			: [NormalizedString];	-- Only for floats
 
 	fmi3VariableBase ::
 		location							: Location
@@ -93,7 +99,8 @@ types
 		clockReference						: [fmi3ValueReference]
 		intermediateAccess					: [bool]
 		dimensions							: [seq1 of Dimension]
-		annotations							: [fmi3Annotation];
+		annotations							: [fmi3Annotation]
+		aliases								: [seq1 of Alias];
 
 	Real ::
 		base				: fmi3VariableBase
@@ -112,20 +119,24 @@ types
 
 	Boolean ::
 		base				: fmi3VariableBase
+		kind				: <BooleanKind>
 		start				: [seq1 of bool];
 
 	String ::
 		base				: fmi3VariableBase
+		kind				: <StringKind>
 		start				: [seq1 of AnyString];	-- From Start elements
 
 	Binary ::
 		base				: fmi3VariableBase
+		kind				: <BinaryKind>
 		mimeType			: [NormalizedString]
 		maxSize				: [nat]
 		start				: [seq1 of AnyString];	-- HexBinary
 
 	Enumeration ::
 		base				: fmi3VariableBase
+		kind				: IntegerKind
 		quantity			: [NormalizedString]
 		min					: [int]
 		max					: [int]
@@ -135,12 +146,23 @@ types
 
 	Clock ::
 		base				: fmi3VariableBase
+		clockAtts			: fmi3ClockAttributes
 		start				: [bool];
 
 	Variable = Real | Integer | Boolean | String | Binary | Enumeration | Clock;
 
 
 functions
+	/**
+	 * Lookup a valueReference in the effective variable list.
+	 */
+	lookup: seq1 of Variable * fmi3ValueReference +> [Variable]
+	lookup(svs, vr) ==
+		let found = { v | v in seq svs & v.base.valueReference = vr } in
+			if found = {}
+			then nil
+			else let {v} = found in v;
+
 	/**
 	 * Invariant helper for min/max/start checks on Real, Integer and Enumeration.
 	 */
@@ -402,10 +424,10 @@ functions
 				mk_Integer(-, kind, -, mk_fmi3IntXXAttributes(min, max), start) ->
 					isInRange[int](min, max, start, kind),
 
-				mk_Enumeration(-, -, min, max, start) ->
+				mk_Enumeration(-, -, -, min, max, start) ->
 					isInRange[nat](min, max, start, <UInt32>),	-- TODO kind of enum?
 
-				mk_Binary(-, -, -, start) ->
+				mk_Binary(-, -, -, -, start) ->
 					-- @OnFail("2.2.10 Binary %s start is not hex-binary at line %s", sv.base.name, sv.base.location)
 					( start <> nil and forall s in seq start &
 						forall c in seq s &
@@ -419,13 +441,10 @@ functions
 	}
 	union
 	{
-		-- @OnFail("2.2.10 Dimensions of %s do not match start value at line %s", sv.base.name, sv.base.location)
+		-- @OnFail("2.2.10 Dimensions of %s do not match start vector at line %s", sv.base.name, sv.base.location)
 		( sv.start <> nil =>
-			if sv.base.dimensions <> nil
-			then
-				let size = dimensionsProduct(sv.base.dimensions) in
-					size > 0 => size = len sv.start
-			else len sv.start = 1 )
+			let size = dimensionsProduct(svs, sv.base.dimensions) in
+				size > 0 => size = len sv.start )
 
 		| sv in seq svs
 	}
@@ -438,25 +457,25 @@ functions
 			{
 				let aliases = refmap(ref) in
 				{
-					/* @OnFail("2.2.10 Multiple aliases of reference %s/%s are settable: %s", ref.#1, ref.#2,
+					/* @OnFail("2.2.10 Multiple aliases of reference %s are settable: %s", ref,
 							{ a.base.name | a in set aliases & isSettable(a) }) */
 					( card { a | a in set aliases & isSettable(a) } <= 1 ),
 
-					/* @OnFail("2.2.10 Aliases of reference %s/%s are settable and independent: %s", ref.#1, ref.#2,
+					/* @OnFail("2.2.10 Aliases of reference %s are settable and independent: %s", ref,
 							{ {a.base.name, b.base.name} | a, b in set aliases &
 								a <> b and isSettable(a) and b.base.causality = <independent> } ) */
 					( not exists a, b in set aliases & a <> b and isSettable(a) and b.base.causality = <independent> ),
 
-					-- @OnFail("2.2.10 Too many aliases of reference %s/%s have start set", ref.#1, ref.#2)
+					-- @OnFail("2.2.10 Too many aliases of reference %s have start set", ref)
 					( card { a.start | a in set aliases & a.base.variability <> <constant> and a.start <> nil } <= 1 ),
 
-					-- @OnFail("2.2.10 Constant aliases of reference %s/%s have different start values", ref.#1, ref.#2)
+					-- @OnFail("2.2.10 Constant aliases of reference %s have different start values", ref)
 					( card { a.start | a in set aliases & a.base.variability = <constant> and a.start <> nil } <= 1 ),
 
-					-- @OnFail("2.2.10 Aliases of reference %s/%s must all be constant or variable", ref.#1, ref.#2)
+					-- @OnFail("2.2.10 Aliases of reference %s must all be constant or variable", ref)
 					( card { a | a in set aliases & a.base.variability = <constant> } in set {0, card aliases} ),
 
-					-- @OnFail("2.2.10 Aliases of reference %s/%s must all have same unit/baseUnits", ref.#1, ref.#2)
+					-- @OnFail("2.2.10 Aliases of reference %s must all have same unit/baseUnits", ref)
 					( card { a.realAtts.unit | a in set aliases & is_Real(a) } <= 1 ),
 
 					/*
@@ -469,12 +488,12 @@ functions
 					 	if exists a in set aliases & a.base.causality in set {<input>, <parameter>}
 					 	then
 					 		let a in set aliases be st a.base.causality in set {<input>, <parameter>} in
-				 				/* @OnFail("2.2.10 Warning: aliases of reference %s/%s must all be %s, because of %s",
-				 						ref.#1, ref.#2, a.base.variability, a.base.name) */
+				 				/* @OnFail("2.2.10 Warning: aliases of reference %s must all be %s, because of %s",
+				 						ref, a.base.variability, a.base.name) */
 				 				( vars = { a.base.variability } ) or true
 					 	else
 					 		let highest in set vars be st not exists v in set vars & v > highest in
-					 			-- @OnFail("2.2.10 Warning: aliases of reference %s/%s must all be %s", ref.#1, ref.#2, highest)
+					 			-- @OnFail("2.2.10 Warning: aliases of reference %s must all be %s", ref, highest)
 					 			( vars = { highest } ) or true
 				}
 
@@ -486,25 +505,30 @@ functions
 
 	/**
 	 * Calculate the overall number of start values expected from dimensions. If a variable is referenced,
-	 * we cannot know its value and so return 0.
+	 * and we do not know its value, we return 0.
 	 */
-	dimensionsProduct: seq of Dimension +> nat
-	dimensionsProduct(dims) ==
-		if dims = []
+	dimensionsProduct: seq1 of Variable * [seq of Dimension] +> nat
+	dimensionsProduct(svs, dims) ==
+		if dims = nil or dims = []
 		then 1
-		else dimensionSize(hd dims) * dimensionsProduct(tl dims)
-	measure len dims;
+		else dimensionSize(svs, hd dims) * dimensionsProduct(svs, tl dims)
+	measure if dims <> nil then len dims else 0;
 
-	dimensionSize: Dimension +> nat
-	dimensionSize(dim) ==
+	dimensionSize: seq1 of Variable * Dimension +> nat
+	dimensionSize(svs, dim) ==
 		if dim.start <> nil
 		then dim.start
-		else 0;		-- variable, so we cannot know
+		else if dim.valueReference = nil
+		then 0
+		else let s = lookup(svs, dim.valueReference) in
+			if s <> nil and s.start <> nil and len s.start > 0
+			then hd s.start
+			else 0;
 
 	/**
 	 * The default value for initial, defined by the (effective) values of causality and
 	 * variability, via the table on p48/49.
-	 */ 
+	 */
 	effectiveInitial: [Initial] * Causality * Variability -> [Initial]
 	effectiveInitial(i, eCausality, eVariability) ==
 		if i <> nil
@@ -601,6 +625,7 @@ functions
 							nil,
 							nil,
 							nil,
+							nil,
 							nil
 							),
 						<Float64>,
@@ -676,7 +701,7 @@ functions
 							else
 								v,	-- Error reported elsewhere
 
-						mk_EnumerationType(-, dquantity, -) ->
+						mk_EnumerationType(-, -, dquantity, -) ->
 							if is_Enumeration(v) then
 								mu(v,
 									base		|-> newbase,
@@ -711,23 +736,11 @@ functions
 		sv.base.causality = <parameter> and sv.base.variability = <tunable>;
 
 	/**
-	 * Test whether two Variables are the same basic type.
+	 * Test whether two Variables are the same basic type (Kind).
 	 */
 	sameTypes: Variable * Variable +> bool
 	sameTypes(a, b) ==
-		typeName(a) = typeName(b);
-
-	/**
-	 * Get the string name of a Variable type.
-	 */
-	typeName: Variable +> seq1 of char
-	typeName(v) ==
-		if is_Real(v) then "Real"
-		else if is_Integer(v) then "Integer"
-		else if is_Boolean(v) then "Boolean"
-		else if is_String(v) then "String"
-		else if is_Enumeration(v) then "Enumeration_" ^ v.base.declaredType
-		else "?";
+		a.kind = b.kind;
 
 	/**
 	 * Return the Variables from a list which are continuous-time states, defined to be
@@ -765,7 +778,7 @@ functions
 	/**
 	 * Get derivative order of a variable.
 	 */
-	getDerivativeBase: nat1 * seq of Variable +> nat * nat1
+	getDerivativeBase: fmi3ValueReference * seq of Variable +> nat * fmi3ValueReference
 	getDerivativeBase(vr, svs) ==
 		if not is_Real(svs(vr)) or svs(vr).varAtts.derivative = nil
 		then mk_(0, vr)
@@ -774,20 +787,12 @@ functions
 	measure is not yet specified;
 
 	/**
-	 * Get the alias refmap, from valueReference/type pairs to sets of SVs
+	 * Get the alias refmap, from valueReferences to sets of SVs
 	 */
-	getAliasRefMap: seq1 of Variable -> map fmi3ValueReference * seq of char to set of Variable
+	getAliasRefMap: seq1 of Variable -> map fmi3ValueReference to set of Variable
 	getAliasRefMap(svs) ==
-		let tags = { svi |-> aliasTag(svs(svi)) | svi in set inds svs } in
+		let vrefs = { svi |-> svs(svi).base.valueReference | svi in set inds svs } in
 		{
-			tags(svi) |-> { svs(v) | v in set inds svs & tags(v) = tags(svi) }
+			vrefs(svi) |-> { svs(v) | v in set inds svs & vrefs(v) = vrefs(svi) }
 			| svi in set inds svs
 		};
-
-	/**
-	 * Generate an alias "tag" for a Variable, made of the valueReference and
-	 * the type of the variable. All aliases of a variable have the same tag.
-	 */
-	aliasTag: Variable +> fmi3ValueReference * seq1 of char
-	aliasTag(sv) ==
-		mk_(sv.base.valueReference, typeName(sv));

@@ -31,30 +31,60 @@
 # Process an FMI V2 FMU or XML file, and validate the XML structure using the VDM-SL model.
 #
 
-if [ "$1" = "-v" -a $# -gt 2 ]
-then
-	SAVE=$2
-	shift 2
-fi
+USAGE="Usage: VDMCheck2.sh [-v <VDM outfile>] [-s <XSD>] -x <XML> | <file>.fmu | <file>.xml"
 
-if [ $# -ne 1 ]
+# Default schema, overridable with -s
+INXSD="schema/fmi2ModelDescription.xsd"
+
+while getopts ":v:x:s:" OPT
+do
+    case "$OPT" in
+        v)
+            SAVE=${OPTARG}
+            ;;
+        x)
+            INXML=${OPTARG}
+            ;;
+        s)
+        	INXSD=${OPTARG}
+        	;;
+        *)
+			echo "$USAGE"
+			exit 1
+            ;;
+    esac
+done
+
+shift "$((OPTIND-1))"
+
+if [ $# = 1 ]
 then
-	echo "Usage: $0 [-v <VDM outfile>] <FMU or modelDescription.xml file>"
-	exit 1
-else
 	FILE=$1
 fi
 
-if [ ! -e "$FILE" ]
+if [ "$INXML" -a "$FILE" ] || [ -z "$INXML" -a -z "$FILE" ]
+then
+	echo "$USAGE"
+	exit 1
+fi
+
+if [ ! -z "$FILE" -a ! -e "$FILE" ]
 then
 	echo "File not found: $FILE"
 	exit 1
 fi
 
+if [ "$INXML" ]
+then
+	FILE=/tmp/xml$$.xml
+	TMPX=$FILE
+	echo "$INXML" >$FILE
+fi
+
 XML=/tmp/modelDescription$$.xml
 VDM=/tmp/vdm$$.vdmsl
 
-trap "rm -f $XML $VDM" EXIT
+trap "rm -f $XML $VDM $TMPX" EXIT
 
 case $(file -b --mime-type $FILE) in
 	application/zip)
@@ -83,9 +113,9 @@ esac
 
 # Subshell cd, so we can set the classpath
 (
-	dir=$(dirname "$0")
+	path=$(which "$0")
+	dir=$(dirname "$path")
 	cd "$dir"
-	
 	VAR=model$$
 	
 	if ! type java 2>/dev/null 1>&2
@@ -94,20 +124,22 @@ esac
 		exit 2
 	fi
 	
-	if ! java -jar fmi2vdm-0.0.2.jar "$XML" "$VAR" >$VDM
+	if ! java -cp fmi2vdm-0.0.2.jar fmi2vdm.FMI2SaxParser "$XML" "$VAR" "$INXSD" >$VDM
 	then
 		echo "Problem converting modelDescription.xml to VDM-SL?"
+		echo "This might be caused by a spelling mistake."
 		exit 2
 	fi
 	
 	java -Xmx1g -cp vdmj-4.3.0.jar:annotations-1.0.0.jar:annotations2-1.0.0.jar \
 		com.fujitsu.vdmj.VDMJ \
 		-vdmsl -q -annotations -e "isValidFMIModelDescription($VAR)" \
-		model $VDM | sed -e "s/true/No errors found./; s/false/Errors found./"
+		model $VDM | sed -e "s/^true$/No errors found./; s/^false$/Errors found./"
 )
 
 if [ "$SAVE" ]
 then
+	if [ $FILE="" ]; then FILE="XML"; fi
 	sed -e "s+generated from $XML+generated from $FILE+" $VDM > "$SAVE"
 	echo "VDM source written to $SAVE"
 fi
