@@ -139,8 +139,11 @@ esac
 	
 	java -Xmx1g -cp vdmj-4.3.0.jar:annotations-1.0.0.jar com.fujitsu.vdmj.VDMJ \
 		-vdmsl -q -annotations -e "isValidFMIModelDescription($VAR)" \
-		model $VDM | sed -e "s/^true$/No errors found./; s/^false$/Errors found./"
+		model $VDM |
+		awk '/^true$/{ print "No errors found."; exit 0 };/^false$/{ print "Errors found."; exit 1 };{ print }'
 )
+
+EXIT=$?		# From subshell above
 
 if [ "$SAVE" ]
 then
@@ -148,3 +151,5 @@ then
 	sed -e "s+generated from $XML+generated from $FILE+" $VDM > "$SAVE"
 	echo "VDM source written to $SAVE"
 fi
+
+exit $EXIT
