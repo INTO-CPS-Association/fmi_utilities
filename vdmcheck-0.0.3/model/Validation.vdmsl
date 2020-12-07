@@ -28,20 +28,18 @@
  */
 
 /**
- * 2.2.6 Vendor Annotations
+ * Functions to support the validation of FMU configuration files.
  */
-types
-	Tool ::
-		location	: Location
-		name		: NormalizedString
-		annotation	: [token];
-
 functions
-	isValidVendorAnnotations: [seq1 of Tool] +> bool
-	isValidVendorAnnotations(tools) ==
-		tools <> nil =>
-			/* @OnFail(1250, "2.2.6 VendorAnnotations tool names are not unique: %s",
-				{ tools(a).name | a, b in set inds tools &
-					a <> b and tools(a).name = tools(b).name }) */
-			( card { t.name | t in seq tools } = len tools );
+	isValidFMIConfiguration: FMIModelDescription | FMIBuildDescription | FMITerminalsAndIcons +> bool
+	isValidFMIConfiguration(conf) ==
+		if is_(conf, FMIModelDescription)
+		then isValidFMIModelDescription(conf)
 
+		elseif is_(conf, FMIBuildDescription)
+		then isValidFMIBuildDescription(conf)
+
+		else if is_(conf, FMITerminalsAndIcons)
+		then isValidFMITerminalsAndIcons(conf)
+
+		else undefined;		-- Undefined top level type

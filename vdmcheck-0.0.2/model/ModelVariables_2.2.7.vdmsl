@@ -105,24 +105,44 @@ types
 		variable		: Variable
 		annotations		: [seq1 of Tool];
 
+	-- Value references
+	fmi2ValueReference = nat;
+
+	-- A tag used to uniquely identify aliased variables (since refs are only unique per type),
+	-- made of the SV valueReference and the type's kind.
+	AliasTag ::
+		vref	: fmi2ValueReference
+		kind	: Kind;
+
 functions
+	/**
+	 * Lookup a valueReference in the variable list passed. Note this assumes that there will
+	 * be at most one, so previous checks have passed.
+	 */
+	lookup: seq1 of ScalarVariable * fmi2ValueReference * Kind +> [ScalarVariable]
+	lookup(svs, vr, kind) ==
+		let found = { v | v in seq svs & v.valueReference = vr and kindOf(v.variable) = kind } in
+			if found = {}
+			then nil
+			else let {v} union  - = found in v;
+
 	/**
 	 * Invariant helper for min/max/start checks on Real, Integer and Enumeration.
 	 */
-	isInRange[@T]: [@T] * [@T] * [@T] * Location +> bool
-	isInRange(min, max, start, location) ==
+	isInRange[@T]: [@T] * [@T] * [@T] * [Initial] * Location +> bool
+	isInRange(min, max, start, initial, location) ==
 	{
 		max <> nil and min <> nil =>
-			--@OnFail("2.2.7 min %s is not <= max %s at line %s", min, max, location)
+			--@OnFail(1300, "2.2.7 min %s is not <= max %s at line %s", min, max, location)
 			( max >= min ),
 
 		start <> nil =>
-			--@OnFail("2.2.7 start %s is not within min %s/max %s at line %s", start, min, max, location)
+			--@OnFail(1301, "2.2.7 start %s is not within min %s/max %s at line %s", start, min, max, location)
 			( (min <> nil => min <= start) and
 			  (max <> nil => max >= start) ),
 
-		start = nil =>
-			--@OnFail("2.2.7 Warning: implicit start of 0 is not within min %s/max %s at line %s", min, max, location)
+		start = nil and initial not in set {<calculated>, <independent>} =>
+			--@OnFail(1302, "2.2.7 Warning: implicit start of 0 is not within min %s/max %s at line %s", min, max, location)
 			( (min <> nil => min <= 0) and
 			  (max <> nil => max >= 0) ) or true	-- NOTE warning
 	} = {true}
@@ -134,18 +154,18 @@ functions
 	isValidScalarVariables: seq1 of ScalarVariable +> bool
 	isValidScalarVariables(svs) ==
 		{
-			/* @OnFail("2.2.7 ScalarVariables define more than one independent variable: %s",
+			/* @OnFail(1303, "2.2.7 ScalarVariables define more than one independent variable: %s",
 				{ sv.name | sv in seq svs & sv.causality = <independent> }) */
 			( card { sv | sv in seq svs & sv.causality = <independent> } <= 1 ),
 
-			/* @OnFail("2.2.7 ScalarVariable names are not unique: %s",
+			/* @OnFail(1304, "2.2.7 ScalarVariable names are not unique: %s",
 				{ svs(a).name | a, b in set inds svs &
 					a <> b and svs(a).name = svs(b).name } ) */
 			( card { sv.name | sv in seq svs } = len svs )
 		}
 		union
 		{
-			-- @OnFail("2.2.7 ScalarVariable %s invalid at line %s", sv.name, sv.location)
+			-- @OnFail(1305, "2.2.7 ScalarVariable %s invalid at line %s", sv.name, sv.location)
 			( isValidScalarVariable(sv) )
 
 			| sv in seq svs
@@ -162,7 +182,7 @@ functions
 		in
 		{
 			-- Table on p46 defining causality, and p48/49 defining combinations
-			/* @OnFail("2.2.7 Variable %s causality/variability/initial/start %s/%s/%s/%s invalid at line %s",
+			/* @OnFail(1306, "2.2.7 Variable %s causality/variability/initial/start %s/%s/%s/%s invalid at line %s",
 				sv.name, eCausality, eVariability, eInitial, sv.variable.start, sv.location) */
 			(
 				cases eCausality:
@@ -182,9 +202,7 @@ functions
 					<independent> ->
 						eVariability = <continuous>
 						and eInitial = nil		-- (D)
-						and sv.variable.start = nil
-						-- @OnFail("2.2.7 Independent variable must be Real at line %s", sv.location)
-						and (is_Real(sv.variable)),
+						and sv.variable.start = nil,
 
 					<output> ->
 						cases eVariability:
@@ -214,8 +232,13 @@ functions
 				end
 			),
 
+			-- @OnFail(1307, "2.2.7 Independent variable must be Real at line %s", sv.location)
+			(
+				eCausality = <independent> => is_Real(sv.variable)
+			),
+
 			-- Table on p46 defining variability, and p49 defining combinations
-			/* @OnFail("2.2.7 Variable %s variability/causality %s/%s invalid at line %s",
+			/* @OnFail(1308, "2.2.7 Variable %s variability/causality %s/%s invalid at line %s",
 				sv.name, eVariability, eCausality, sv.location) */
 			(
 				cases eVariability:
@@ -230,13 +253,16 @@ functions
 
 					<continuous> ->
 						eCausality in set {<input>, <output>, <local>, <independent>}
-						-- @OnFail("2.2.7 Continuous variable must be Real at line %s", sv.location)
-						and (is_Real(sv.variable))
 				end
 			),
 
+			-- @OnFail(1309, "2.2.7 Continuous variable must be Real at line %s", sv.location)
+			(
+				eVariability = <continuous> => is_Real(sv.variable)
+			),
+
 			-- Table on p47 defining initial
-			/* @OnFail("2.2.7 Variable %s initial/causality %s/%s invalid at %s",
+			/* @OnFail(1310, "2.2.7 Variable %s initial/causality %s/%s invalid at %s",
 				sv.name, sv.initial, eCausality, sv.location) */
 			(
 				sv.initial <> nil =>
@@ -244,7 +270,7 @@ functions
 			),
 
 			-- Table on p47 defining initial
-			/* @OnFail("2.2.7 Variable %s initial/variability/start %s/%s/%s invalid at line %s",
+			/* @OnFail(1311, "2.2.7 Variable %s initial/variability/start %s/%s/%s invalid at line %s",
 				sv.name, eInitial, eVariability, sv.variable.start, sv.location) */
 			(
 				cases eInitial:
@@ -264,7 +290,7 @@ functions
 				end
 			),
 
-			-- @OnFail("2.2.7 VendorAnnotations invalid")
+			-- @OnFail(1312, "2.2.7 VendorAnnotations invalid")
 			( isValidVendorAnnotations(sv.annotations) )
 		} = {true};
 
@@ -276,19 +302,19 @@ functions
 	isValidEffectiveVariables: seq1 of ScalarVariable +> bool
 	isValidEffectiveVariables(svs) ==
 	{
-		-- @OnFail("2.2.7 Variable %s min/max/start/nominal invalid at line %s", sv.name, sv.location)
+		-- @OnFail(1313, "2.2.7 Variable %s min/max/start/nominal invalid at line %s", sv.name, sv.location)
 		(
 			cases sv.variable:
 				mk_Real(-, -, -, -, -, min, max, nominal, -, start, -, -) ->
-					isInRange[real](min, max, start, sv.location)
-					-- @OnFail("2.2.7 Real nominal must be >0.0 at line %s", sv.location)
+					isInRange[real](min, max, start, sv.initial, sv.location)
+					-- @OnFail(1314, "2.2.7 Real nominal must be >0.0 at line %s", sv.location)
 					and (nominal <> nil => nominal > 0.0),
 
 				mk_Integer(-, -, min, max, start) ->
-					isInRange[real](min, max, start, sv.location),
+					isInRange[real](min, max, start, sv.initial, sv.location),
 
 				mk_Enumeration(-, -, min, max, start) ->
-					isInRange[real](min, max, start, sv.location),
+					isInRange[real](min, max, start, sv.initial, sv.location),
 
 				others -> true		-- String, Boolean
 			end
@@ -298,32 +324,32 @@ functions
 	}
 	union
 	{
-		/* @OnFail("2.2.7 Invalid ScalarVariable aliasing") */
+		/* @OnFail(1315, "2.2.7 Invalid ScalarVariable aliasing") */
 		(
 			let refmap = getAliasRefMap(svs) in
 			card dom refmap < len svs => dunion	-- Must be some aliases
 			{
 				let aliases = refmap(ref) in
 				{
-					/* @OnFail("2.2.7 Multiple aliases of reference %s/%s are settable: %s", ref.#1, ref.#2,
+					/* @OnFail(1316, "2.2.7 Multiple aliases of reference %s are settable: %s", ref,
 							{ a.name | a in set aliases & isSettable(a) }) */
 					( card { a | a in set aliases & isSettable(a) } <= 1 ),
 
-					/* @OnFail("2.2.7 Aliases of reference %s/%s are settable and independent: %s", ref.#1, ref.#2,
+					/* @OnFail(1317, "2.2.7 Aliases of reference %s are settable and independent: %s", ref,
 							{ {a.name, b.name} | a, b in set aliases &
 								a <> b and isSettable(a) and b.causality = <independent> } ) */
 					( not exists a, b in set aliases & a <> b and isSettable(a) and b.causality = <independent> ),
 
-					-- @OnFail("2.2.7 Too many aliases of reference %s/%s have start set", ref.#1, ref.#2)
+					-- @OnFail(1318, "2.2.7 Too many aliases of reference %s have start set", ref)
 					( card { a.variable.start | a in set aliases & a.variability <> <constant> and a.variable.start <> nil } <= 1 ),
 
-					-- @OnFail("2.2.7 Constant aliases of reference %s/%s have different start values", ref.#1, ref.#2)
+					-- @OnFail(1319, "2.2.7 Constant aliases of reference %s have different start values", ref)
 					( card { a.variable.start | a in set aliases & a.variability = <constant> and a.variable.start <> nil } <= 1 ),
 
-					-- @OnFail("2.2.7 Aliases of reference %s/%s must all be constant or variable", ref.#1, ref.#2)
+					-- @OnFail(1320, "2.2.7 Aliases of reference %s must all be constant or variable", ref)
 					( card { a | a in set aliases & a.variability = <constant> } in set {0, card aliases} ),
 
-					-- @OnFail("2.2.7 Aliases of reference %s/%s must all have same unit/baseUnits", ref.#1, ref.#2)
+					-- @OnFail(1321, "2.2.7 Aliases of reference %s must all have same unit/baseUnits", ref)
 					( card { a.variable.unit | a in set aliases & is_Real(a.variable) } <= 1 ),
 
 					/*
@@ -336,12 +362,12 @@ functions
 					 	if exists a in set aliases & a.causality in set {<input>, <parameter>}
 					 	then
 					 		let a in set aliases be st a.causality in set {<input>, <parameter>} in
-				 				/* @OnFail("2.2.7 Warning: aliases of reference %s/%s must all be %s, because of %s",
-				 						ref.#1, ref.#2, a.variability, a.name) */
+				 				/* @OnFail(1322, "2.2.7 Warning: aliases of reference %s must all be %s, because of %s",
+				 						ref, a.variability, a.name) */
 				 				( vars = { a.variability } ) or true
 					 	else
 					 		let highest in set vars be st not exists v in set vars & v > highest in
-					 			-- @OnFail("2.2.7 Warning: aliases of reference %s/%s must all be %s", ref.#1, ref.#2, highest)
+					 			-- @OnFail(1323, "2.2.7 Warning: aliases of reference %s must all be %s", ref, highest)
 					 			( vars = { highest } ) or true
 				}
 
@@ -533,19 +559,19 @@ functions
 	 */
 	sameTypes: Variable * Variable +> bool
 	sameTypes(a, b) ==
-		typeName(a) = typeName(b);
+		kindOf(a) = kindOf(b);
 
 	/**
-	 * Get the string name of a Variable type.
+	 * Get the kind of a Variable.
 	 */
-	typeName: Variable +> seq1 of char
-	typeName(v) ==
-		if is_Real(v) then "Real"
-		else if is_Integer(v) then "Integer"
-		else if is_Boolean(v) then "Boolean"
-		else if is_String(v) then "String"
-		else if is_Enumeration(v) then "Enumeration_" ^ v.declaredType
-		else "?";
+	kindOf: Variable -> Kind
+	kindOf(v) ==
+		if is_Real(v) then <Real>
+		else if is_Integer(v) then <Integer>
+		else if is_Boolean(v) then <Boolean>
+		else if is_String(v) then <String>
+		else if is_Enumeration(v) then <Integer>	-- Note!
+		else undefined;
 
 	/**
 	 * Return the ScalarVariables from a list which are continuous-time states, defined to be
@@ -561,7 +587,8 @@ functions
 	isContinuousTimeState: nat1 * seq of ScalarVariable +> bool
 	isContinuousTimeState(i, svs) ==
 		is_Real(svs(i).variable)
-		and svs(i).variability = <continuous> 
+		and svs(i).variability = <continuous>
+		and svs(i).causality in set { <local>, <output> }	-- See defn. causality
 		and exists j in seq svs &
 			is_Real(j.variable) and j.variable.derivative = i;
 
@@ -584,17 +611,17 @@ functions
 	 * Get derivative order of a variable.
 	 */
 	getDerivativeBase: nat1 * seq of ScalarVariable +> nat * nat1
-	getDerivativeBase(vr, svs) ==
-		if not is_Real(svs(vr).variable) or svs(vr).variable.derivative = nil
-		then mk_(0, vr)
-		else let mk_(o, r) = getDerivativeBase(svs(vr).variable.derivative, svs) in
+	getDerivativeBase(idx, svs) ==
+		if not is_Real(svs(idx).variable) or svs(idx).variable.derivative = nil
+		then mk_(0, idx)
+		else let mk_(o, r) = getDerivativeBase(svs(idx).variable.derivative, svs) in
 			mk_(o+1, r)
 	measure is not yet specified;
 
 	/**
-	 * Get the alias refmap, from valueReference/type pairs to sets of SVs
+	 * Get the alias refmap, from alias tags to sets of SVs
 	 */
-	getAliasRefMap: seq1 of ScalarVariable -> map nat * seq of char to set of ScalarVariable
+	getAliasRefMap: seq1 of ScalarVariable -> map AliasTag to set of ScalarVariable
 	getAliasRefMap(svs) ==
 		let tags = { svi |-> aliasTag(svs(svi)) | svi in set inds svs } in
 		{
@@ -606,6 +633,6 @@ functions
 	 * Generate an alias "tag" for a ScalarVariable, made of the valueReference and
 	 * the type of the variable. All aliases of a variable have the same tag.
 	 */
-	aliasTag: ScalarVariable +> nat * seq1 of char
+	aliasTag: ScalarVariable +> AliasTag
 	aliasTag(sv) ==
-		mk_(sv.valueReference, typeName(sv.variable));
+		mk_AliasTag(sv.valueReference, kindOf(sv.variable));
